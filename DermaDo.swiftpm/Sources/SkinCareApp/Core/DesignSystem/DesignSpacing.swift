@@ -30,6 +30,9 @@ public enum DesignRadius {
     /// 8pt — Small inputs, inner images
     public static let control: CGFloat = 8.0
     
+    /// 16pt — Interactive elements, pills, pickers
+    public static let element: CGFloat = 16.0
+    
     /// 20pt — Standard cards, floating modules
     public static let container: CGFloat = 20.0
     

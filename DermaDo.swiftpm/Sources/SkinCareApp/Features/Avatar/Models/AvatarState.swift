@@ -25,6 +25,9 @@ public struct AvatarState: Equatable {
     /// The intensity level (0.0 to 1.0) of the background radiant aura.
     public var glowIntensity: Double
     
+    /// The brightness boost (0.0 to 1.0) applied to the avatar's skin from progress.
+    public var skinBrightness: Double
+    
     /// Whether the voice-reactive aura should be pulsing.
     public var isVoiceListening: Bool
     
@@ -35,6 +38,7 @@ public struct AvatarState: Equatable {
         expression: String = "avatar_eyes_open",
         activeOverlay: String? = nil,
         glowIntensity: Double = 0.0,
+        skinBrightness: Double = 0.0,
         isVoiceListening: Bool = false
     ) {
         self.skinTone = skinTone
@@ -43,6 +47,7 @@ public struct AvatarState: Equatable {
         self.expression = expression
         self.activeOverlay = activeOverlay
         self.glowIntensity = glowIntensity
+        self.skinBrightness = skinBrightness
         self.isVoiceListening = isVoiceListening
     }
 }

@@ -12,7 +12,7 @@ public struct RoutineSessionView2: View {
     @StateObject private var viewModel: RoutineSessionViewModel
     @StateObject private var avatarViewModel: AvatarViewModel
     
-    public init(routine: Routine, productManager: ProductManagerProtocol, activeSession: ActiveRoutineSession, voiceManager: VoiceManager) {
+    init(routine: Routine, productManager: ProductManagerProtocol, activeSession: ActiveRoutineSession, voiceManager: VoiceManager) {
         _viewModel = StateObject(wrappedValue: RoutineSessionViewModel(routine: routine, productManager: productManager, activeSession: activeSession))
         _avatarViewModel = StateObject(wrappedValue: AvatarViewModel(activeSession: activeSession, voiceManager: voiceManager))
     }

@@ -58,6 +58,10 @@ public final class AvatarViewModel: ObservableObject {
         state.skinTone = color
     }
     
+    public func setExpression(_ expression: String) {
+        state.expression = expression
+    }
+    
     public func updateHairStyle(_ style: String) {
         state.hairStyle = style
     }
@@ -121,5 +125,18 @@ public final class AvatarViewModel: ObservableObject {
         withAnimation(DesignMotion.heroMaterialize) {
             state.glowIntensity = max(0.0, min(1.0, intensity))
         }
+    }
+    
+    /// Sets the skin brightness boost driven by progress tracking.
+    public func setSkinBrightness(_ brightness: Double) {
+        withAnimation(DesignMotion.heroMaterialize) {
+            state.skinBrightness = max(0.0, min(1.0, brightness))
+        }
+    }
+    
+    /// Applies progress-driven glow and skin brightness simultaneously.
+    public func applyProgress(glowIntensity: Double, skinBrightness: Double) {
+        setGlowIntensity(glowIntensity)
+        setSkinBrightness(skinBrightness)
     }
 }

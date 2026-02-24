@@ -8,6 +8,9 @@ public struct AppMainView: View {
     @EnvironmentObject private var voiceManager: VoiceManager
     @EnvironmentObject private var dependencies: AppDependencies
     
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
+    @State private var showOnboarding: Bool = false
+    
     public init() {}
     
     public var body: some View {
@@ -22,7 +25,8 @@ public struct AppMainView: View {
                 HomeDashboardView(viewModel: HomeDashboardViewModel(
                     routineManager: dependencies.routineManager,
                     trackerManager: dependencies.trackerManager,
-                    settingsManager: dependencies.settingsManager
+                    settingsManager: dependencies.settingsManager,
+                    progressManager: dependencies.progressManager
                 ))
                     .transition(DesignMotion.editorialReveal)
             case .routine:
@@ -48,6 +52,30 @@ public struct AppMainView: View {
             }
         }
         .colorScheme(.dark) // Force dark mode first on 2.0 shell
+        .onAppear {
+            if !hasCompletedOnboarding {
+                showOnboarding = true
+            }
+        }
+        .fullScreenCover(isPresented: $showOnboarding) {
+            OnboardingView { name, skinTone, skinType in
+                // Persist user profile for personalization
+                UserDefaults.standard.set(name, forKey: "userName")
+                UserDefaults.standard.set(skinType.rawValue, forKey: "userSkinType")
+                
+                // Save skin tone color components for avatar persistence
+                #if canImport(UIKit)
+                var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+                UIColor(skinTone).getRed(&r, green: &g, blue: &b, alpha: &a)
+                UserDefaults.standard.set([Double(r), Double(g), Double(b)], forKey: "userSkinToneRGB")
+                #endif
+                
+                withAnimation(DesignMotion.heroMaterialize) {
+                    hasCompletedOnboarding = true
+                    showOnboarding = false
+                }
+            }
+        }
     }
 }
 

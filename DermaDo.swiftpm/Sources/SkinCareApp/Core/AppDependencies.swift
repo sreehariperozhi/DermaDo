@@ -17,6 +17,7 @@ final class AppDependencies: ObservableObject {
     let trackerManager: TrackerManagerProtocol
     let insightManager: InsightManagerProtocol
     let settingsManager: SettingsManagerProtocol
+    let progressManager: ProgressManagerProtocol
     
     // MARK: - Initialization
     
@@ -57,6 +58,9 @@ final class AppDependencies: ObservableObject {
         // 8. Tracker Manager (depends on Data)
         let trackerManager = TrackerManager(dataManager: dataManager)
         self.trackerManager = trackerManager
+        
+        // 9. Progress Manager (depends on Data)
+        self.progressManager = ProgressManager(dataManager: dataManager)
         
         // 9. Backup Manager (depends on everything)
         self.backupManager = BackupManager(

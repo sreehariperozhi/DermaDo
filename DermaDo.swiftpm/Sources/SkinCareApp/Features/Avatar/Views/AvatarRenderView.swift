@@ -4,6 +4,7 @@ import SwiftUI
 /// This View performs NO logic. It only translates state into ZStack layers.
 public struct AvatarRenderView: View {
     @ObservedObject var viewModel: AvatarViewModel
+    @State private var isBreathing: Bool = false
     
     public init(viewModel: AvatarViewModel) {
         self.viewModel = viewModel
@@ -32,11 +33,18 @@ public struct AvatarRenderView: View {
                     .frame(width: 140, height: 260)
                     .offset(y: 40)
                     .overlay(
+                        // Progress-driven skin brightness glow
+                        Capsule()
+                            .fill(Color.white.opacity(state.skinBrightness * 0.5))
+                            .blur(radius: 4)
+                    )
+                    .overlay(
                         // Simulate a neck/chin line
                         Capsule()
                             .stroke(Color.black.opacity(0.1), lineWidth: 4)
                     )
                     .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
+                    .animation(DesignMotion.heroMaterialize, value: state.skinBrightness)
                 
                 // Hair Layer
                 if state.hairStyle == "avatar_hair_default" {
@@ -93,10 +101,18 @@ public struct AvatarRenderView: View {
             .frame(width: 300, height: 400)
             // Flat vector styling for the fashion-tech 2D look
             .drawingGroup() 
-            // The character breathes slightly when idle
-            .scaleEffect(state.activeOverlay == nil ? 1.0 : 0.98)
+            // The character breathes gently when idle — organic, living feel
+            .scaleEffect(isBreathing ? 1.02 : 1.0)
+            .animation(
+                Animation.easeInOut(duration: 3.0).repeatForever(autoreverses: true),
+                value: isBreathing
+            )
             .animation(DesignMotion.editorialSpring, value: state.expression)
             .animation(DesignMotion.editorialSpring, value: state.activeOverlay)
         }
+        .onAppear {
+            isBreathing = true
+        }
     }
 }
+

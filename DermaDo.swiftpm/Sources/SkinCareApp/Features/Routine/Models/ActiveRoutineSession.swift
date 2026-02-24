@@ -10,7 +10,7 @@ public enum RoutineStepType: Equatable {
     case moisturizing
     case sunscreen
     
-    public static func mapStepType(_ type: StepType) -> RoutineStepType {
+    static func mapStepType(_ type: StepType) -> RoutineStepType {
         switch type {
         case .cleanse: return .cleanser
         case .mask: return .mask

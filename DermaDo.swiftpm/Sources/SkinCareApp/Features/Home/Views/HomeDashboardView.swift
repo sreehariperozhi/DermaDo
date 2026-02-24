@@ -32,6 +32,11 @@ public struct HomeDashboardView: View {
                 // MARK: - 4. Consistency Streak
                 streakCard
                 
+                // MARK: - 4b. Encouragement Message
+                if !viewModel.encouragementMessage.isEmpty {
+                    encouragementCard
+                }
+                
                 // MARK: - 5. Next Reminder
                 if let reminderText = viewModel.nextReminderText {
                     reminderCard(text: reminderText)
@@ -238,6 +243,31 @@ public struct HomeDashboardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .glassCard()
         .editorialReveal(delay: 0.6)
+    }
+    
+    // MARK: - Section 4b: Encouragement
+    
+    private var encouragementCard: some View {
+        HStack(spacing: DesignSpacing.standard) {
+            ZStack {
+                Circle()
+                    .fill(DesignColors.sageBotanical.opacity(0.15))
+                    .frame(width: 44, height: 44)
+                
+                Image(systemName: "sparkle")
+                    .font(.system(size: 18))
+                    .foregroundColor(DesignColors.sageBotanical)
+            }
+            
+            Text(viewModel.encouragementMessage)
+                .font(DesignTypography.bodyUI)
+                .foregroundColor(DesignColors.luminousPearl)
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassCard()
+        .editorialReveal(delay: 0.65)
     }
     
     // MARK: - Section 5: Next Reminder

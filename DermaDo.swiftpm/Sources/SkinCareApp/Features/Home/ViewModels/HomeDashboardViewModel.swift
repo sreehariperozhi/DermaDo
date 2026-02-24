@@ -11,6 +11,7 @@ public final class HomeDashboardViewModel: ObservableObject {
     private let routineManager: RoutineManagerProtocol
     private let trackerManager: TrackerManagerProtocol
     private let settingsManager: SettingsManagerProtocol
+    private let progressManager: ProgressManagerProtocol
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -24,7 +25,7 @@ public final class HomeDashboardViewModel: ObservableObject {
     @Published public var nextRoutineTimeDesc: String = ""
     @Published public var nextRoutineStepCount: Int = 0
     @Published public var hasRoutine: Bool = false
-    @Published public var todayRoutine: Routine?
+    @Published var todayRoutine: Routine?
     
     /// Skin tracker glance
     @Published public var lastSkinScore: String = "—"
@@ -34,19 +35,24 @@ public final class HomeDashboardViewModel: ObservableObject {
     @Published public var streakDays: Int = 0
     @Published public var totalEntries: Int = 0
     
+    /// Encouragement message from progress tracking
+    @Published public var encouragementMessage: String = ""
+    
     /// Next reminder
     @Published public var nextReminderText: String?
     
     // MARK: - Initialization
     
-    public init(
+    init(
         routineManager: RoutineManagerProtocol,
         trackerManager: TrackerManagerProtocol,
-        settingsManager: SettingsManagerProtocol
+        settingsManager: SettingsManagerProtocol,
+        progressManager: ProgressManagerProtocol
     ) {
         self.routineManager = routineManager
         self.trackerManager = trackerManager
         self.settingsManager = settingsManager
+        self.progressManager = progressManager
         
         setupBindings()
         refresh()
@@ -72,6 +78,11 @@ public final class HomeDashboardViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.computeNextReminder() }
             .store(in: &cancellables)
+        
+        progressManager.progressPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.computeEncouragement() }
+            .store(in: &cancellables)
     }
     
     // MARK: - Refresh All
@@ -82,6 +93,7 @@ public final class HomeDashboardViewModel: ObservableObject {
         computeSkinGlance()
         computeStreak()
         computeNextReminder()
+        computeEncouragement()
     }
     
     // MARK: - Start Routine
@@ -195,22 +207,15 @@ public final class HomeDashboardViewModel: ObservableObject {
         let entries = trackerManager.fetchAllEntries()
         totalEntries = entries.count
         
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        let entryDates: Set<Date> = Set(
-            entries.map { calendar.startOfDay(for: $0.date) }
-        )
-        
-        var streak = 0
-        var checkDate = today
-        while entryDates.contains(checkDate) {
-            streak += 1
-            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: checkDate) else { break }
-            checkDate = previousDay
-        }
-        
-        streakDays = streak
+        // Source streak from ProgressManager for consistency
+        let progress = progressManager.loadProgress()
+        streakDays = progress.currentStreak
+    }
+    
+    // MARK: - Encouragement
+    
+    private func computeEncouragement() {
+        encouragementMessage = progressManager.encouragementMessage
     }
     
     // MARK: - Next Reminder

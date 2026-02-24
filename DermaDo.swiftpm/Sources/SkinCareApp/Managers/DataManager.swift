@@ -45,6 +45,7 @@ final class DataManager: DataManagerProtocol, ObservableObject {
         static let achievements = "achievements"
         static let settings     = "settings"
         static let userProfile  = "user_profile"
+        static let progress      = "progress"
         static let schemaVersion = "schema_version"
     }
 
