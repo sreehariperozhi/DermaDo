@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 import Charts
 
 struct TrackerView: View {
@@ -14,250 +13,341 @@ struct TrackerViewContent: View {
     @StateObject var viewModel: TrackerViewModel
     @State private var showingAddEntry = false
     @State private var appeared = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: AppSpacing.lg) {
+        ZStack {
+            // MARK: - Background
+            backgroundLayer
 
-                    // Period Selector
-                    Picker("Period", selection: $viewModel.selectedPeriod) {
-                        Text("Week").tag(TrackerViewModel.Period.week)
-                        Text("Month").tag(TrackerViewModel.Period.month)
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    .padding(.horizontal, AppSpacing.screenHorizontal)
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: DesignSpacing.heroic) {
+                    
+                    // MARK: - Header
+                    headerSection
+                        .editorialReveal(delay: 0.1)
 
-                    // Chart
-                    CardView {
-                        VStack(alignment: .leading, spacing: AppSpacing.md) {
-                            HStack(spacing: AppSpacing.xs) {
-                                Image(systemName: "chart.line.uptrend.xyaxis")
-                                    .font(.system(size: 16))
-                                    .symbolRenderingMode(.hierarchical)
-                                    .foregroundColor(.appAccentPrimary)
+                    // MARK: - Period Selector
+                    periodSelector
+                        .editorialReveal(delay: 0.15)
 
-                                Text("Skin Trends")
-                                    .font(.appSectionTitle)
-                                    .foregroundColor(.appTextPrimary)
-                            }
+                    // MARK: - Trends Chart
+                    trendsChartSection
+                        .editorialReveal(delay: 0.2)
 
-                            if !viewModel.periodEntries.isEmpty {
-                                Chart {
-                                    ForEach(viewModel.periodEntries) { entry in
-                                        LineMark(
-                                            x: .value("Date", entry.date),
-                                            y: .value("Oil", entry.oilLevel)
-                                        )
-                                        .foregroundStyle(Color.appWarning)
-                                        .symbol(Circle())
-                                        .interpolationMethod(.catmullRom)
+                    // MARK: - Stats Grid
+                    statsGridSection
+                        .editorialReveal(delay: 0.25)
 
-                                        LineMark(
-                                            x: .value("Date", entry.date),
-                                            y: .value("Dryness", entry.drynessLevel)
-                                        )
-                                        .foregroundStyle(Color.appAccentPrimary)
-                                        .symbol(Circle())
-                                        .interpolationMethod(.catmullRom)
-
-                                        LineMark(
-                                            x: .value("Date", entry.date),
-                                            y: .value("Redness", entry.rednessLevel)
-                                        )
-                                        .foregroundStyle(Color.appError)
-                                        .symbol(Circle())
-                                        .interpolationMethod(.catmullRom)
-                                    }
-                                }
-                                .frame(height: 200)
-                                .chartYScale(domain: 0...10)
-                                .chartXAxis {
-                                    AxisMarks(values: .automatic) { value in
-                                        if viewModel.selectedPeriod == .week {
-                                            AxisValueLabel(format: .dateTime.weekday(.abbreviated))
-                                        } else {
-                                            AxisValueLabel(format: .dateTime.day())
-                                        }
-                                        AxisGridLine()
-                                    }
-                                }
-                                .animation(.easeInOut(duration: 0.25), value: viewModel.selectedPeriod)
-                            } else {
-                                Text("No data for this period")
-                                    .frame(height: 200)
-                                    .frame(maxWidth: .infinity)
-                                    .foregroundColor(.appTextTertiary)
-                                    .font(.appBody)
-                            }
-
-                            // Legend
-                            HStack(spacing: AppSpacing.md) {
-                                LegendItem(name: "Oil", color: .appWarning)
-                                LegendItem(name: "Dryness", color: .appAccentPrimary)
-                                LegendItem(name: "Redness", color: .appError)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, AppSpacing.screenHorizontal)
-
-                    // Stats — using SF Symbols instead of emojis
-                    HStack(spacing: AppSpacing.sm) {
-                        StatBox(sfSymbol: "drop.fill", title: "Avg Oil", value: String(format: "%.1f", viewModel.averageOil))
-                        StatBox(sfSymbol: "sun.dust", title: "Avg Dry", value: String(format: "%.1f", viewModel.averageDryness))
-                    }
-                    .padding(.horizontal, AppSpacing.screenHorizontal)
-
-                    HStack(spacing: AppSpacing.sm) {
-                        StatBox(sfSymbol: "circle.fill", title: "Avg Red", value: String(format: "%.1f", viewModel.averageRedness))
-                        StatBox(sfSymbol: "magnifyingglass", title: "Avg Acne", value: String(format: "%.1f", viewModel.averageAcne))
-                    }
-                    .padding(.horizontal, AppSpacing.screenHorizontal)
-
-                    // Recent Entries
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        Text("Recent Entries")
-                            .font(.appSectionTitle)
-                            .foregroundColor(.appTextPrimary)
-                            .padding(.horizontal, AppSpacing.screenHorizontal)
-
-                        if viewModel.allEntries.isEmpty {
-                            Text("No entries yet.")
-                                .foregroundColor(.appTextTertiary)
-                                .font(.appBody)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            ForEach(viewModel.allEntries) { entry in
-                                EntryRow(entry: entry, viewModel: viewModel)
-                                    .padding(.horizontal, AppSpacing.screenHorizontal)
-                                Divider()
-                                    .background(Color.appDivider)
-                                    .padding(.leading, AppSpacing.screenHorizontal)
-                            }
-                        }
-                    }
+                    // MARK: - Recent Entries
+                    recentEntriesSection
+                        .editorialReveal(delay: 0.3)
+                    
+                    Spacer().frame(height: 100) // Clearance for floating dock
                 }
-                .padding(.vertical, AppSpacing.screenVertical)
-                .opacity(appeared ? 1 : 0)
+                .padding(.horizontal, DesignSpacing.large)
+                .padding(.top, DesignSpacing.editorial)
             }
-            .navigationTitle("Skin Tracker")
-            .navigationBarTitleDisplayMode(.inline)
-            .background(Color.appBackgroundPrimary.ignoresSafeArea())
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingAddEntry = true }) {
-                        Image(systemName: "plus")
-                            .foregroundColor(.appAccentPrimary)
-                    }
-                }
+        }
+        .colorScheme(.dark)
+        .onAppear {
+            viewModel.refresh()
+            withAnimation(DesignMotion.heroMaterialize) {
+                appeared = true
             }
-            .sheet(isPresented: $showingAddEntry) {
-                AddEntryView(viewModel: AddEntryViewModel(trackerManager: dependencies.trackerManager, dataManager: dependencies.dataManager), onSaved: {
-                    viewModel.refresh()
-                })
-            }
-            .onAppear {
+        }
+        .sheet(isPresented: $showingAddEntry) {
+            AddEntryView(viewModel: AddEntryViewModel(trackerManager: dependencies.trackerManager, dataManager: dependencies.dataManager), onSaved: {
                 viewModel.refresh()
-                if !reduceMotion {
-                    withAnimation(.easeInOut(duration: 0.4)) {
-                        appeared = true
+            })
+        }
+    }
+
+    // MARK: - Background Layer
+    private var backgroundLayer: some View {
+        ZStack {
+            DesignColors.voidObsidian.ignoresSafeArea()
+
+            // Ambient cerulean orb
+            Circle()
+                .fill(DesignColors.ceruleanHydration.opacity(0.1))
+                .frame(width: 400, height: 400)
+                .blur(radius: 120)
+                .offset(x: -150, y: -250)
+
+            // Velvet Crimson orb for irritation tracking context
+            Circle()
+                .fill(DesignColors.velvetCrimson.opacity(0.05))
+                .frame(width: 300, height: 300)
+                .blur(radius: 100)
+                .offset(x: 150, y: 150)
+        }
+    }
+
+    // MARK: - Header Section
+    private var headerSection: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: DesignSpacing.micro) {
+                Text("SKIN ANALYTICS")
+                    .font(DesignTypography.captionUI)
+                    .captionTracking()
+                    .foregroundColor(DesignColors.liquidSilver)
+
+                Text("Skin Tracker")
+                    .font(DesignTypography.displayEditorial)
+                    .foregroundColor(DesignColors.luminousPearl)
+            }
+            Spacer()
+            
+            Button(action: { showingAddEntry = true }) {
+                ZStack {
+                    Circle()
+                        .fill(DesignColors.voidAsh.opacity(0.8))
+                        .frame(width: 48, height: 48)
+                        .overlay(Circle().stroke(DesignShadows.innerGlow, lineWidth: 1))
+                    
+                    Image(systemName: "plus")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(DesignColors.roseGold)
+                }
+            }
+        }
+    }
+
+    // MARK: - Period Selector
+    private var periodSelector: some View {
+        HStack(spacing: 0) {
+            ForEach(TrackerViewModel.Period.allCases, id: \.self) { period in
+                let isSelected = viewModel.selectedPeriod == period
+                Button(action: {
+                    withAnimation(DesignMotion.tactilePress) {
+                        viewModel.selectedPeriod = period
                     }
-                } else {
-                    appeared = true
+                }) {
+                    Text(period == .week ? "Week" : "Month")
+                        .font(DesignTypography.bodyStrongUI)
+                        .foregroundColor(isSelected ? DesignColors.voidObsidian : DesignColors.liquidSilver)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 40)
+                        .background(
+                            Capsule()
+                                .fill(isSelected ? DesignColors.luminousPearl : Color.clear)
+                        )
+                }
+            }
+        }
+        .padding(4)
+        .background(DesignColors.voidAsh.opacity(0.5))
+        .clipShape(Capsule())
+        .overlay(Capsule().stroke(DesignShadows.innerGlow, lineWidth: 1))
+    }
+
+    // MARK: - Trends Chart
+    private var trendsChartSection: some View {
+        VStack(alignment: .leading, spacing: DesignSpacing.standard) {
+            HStack {
+                Image(systemName: "chart.line.uptrend.xyaxis")
+                    .foregroundColor(DesignColors.roseGold)
+                Text("Trends")
+                    .font(DesignTypography.titleUI)
+                    .foregroundColor(DesignColors.luminousPearl)
+                Spacer()
+            }
+
+            if !viewModel.periodEntries.isEmpty {
+                Chart {
+                    ForEach(viewModel.periodEntries) { entry in
+                        // Oil Level
+                        LineMark(
+                            x: .value("Date", entry.date),
+                            y: .value("Oil", entry.oilLevel)
+                        )
+                        .foregroundStyle(DesignColors.ceruleanHydration)
+                        .interpolationMethod(.catmullRom)
+
+                        // Dryness
+                        LineMark(
+                            x: .value("Date", entry.date),
+                            y: .value("Dryness", entry.drynessLevel)
+                        )
+                        .foregroundStyle(DesignColors.roseGold)
+                        .interpolationMethod(.catmullRom)
+
+                        // Redness
+                        LineMark(
+                            x: .value("Date", entry.date),
+                            y: .value("Redness", entry.rednessLevel)
+                        )
+                        .foregroundStyle(DesignColors.velvetCrimson)
+                        .interpolationMethod(.catmullRom)
+                    }
+                }
+                .frame(height: 220)
+                .chartYScale(domain: 0...10)
+                .chartXAxis {
+                    AxisMarks(values: .automatic) { _ in
+                        AxisValueLabel()
+                            .font(DesignTypography.microUI)
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                            .foregroundStyle(DesignColors.voidAsh)
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks(values: .automatic) { _ in
+                        AxisValueLabel()
+                            .font(DesignTypography.microUI)
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                            .foregroundStyle(DesignColors.voidAsh)
+                    }
+                }
+            } else {
+                VStack(spacing: DesignSpacing.medium) {
+                    Image(systemName: "tray")
+                        .font(.system(size: 30))
+                        .foregroundColor(DesignColors.voidAsh)
+                    Text("No data for this period")
+                        .font(DesignTypography.bodyUI)
+                        .foregroundColor(DesignColors.liquidSilver)
+                }
+                .frame(height: 220)
+                .frame(maxWidth: .infinity)
+            }
+
+            // Legend
+            HStack(spacing: DesignSpacing.large) {
+                legendItem(label: "Oil", color: DesignColors.ceruleanHydration)
+                legendItem(label: "Dryness", color: DesignColors.roseGold)
+                legendItem(label: "Redness", color: DesignColors.velvetCrimson)
+            }
+        }
+        .padding(DesignSpacing.standard)
+        .glassCard()
+    }
+
+    private func legendItem(label: String, color: Color) -> some View {
+        HStack(spacing: 6) {
+            Circle().fill(color).frame(width: 8, height: 8)
+            Text(label)
+                .font(DesignTypography.microUI)
+                .foregroundColor(DesignColors.liquidSilver)
+        }
+    }
+
+    // MARK: - Stats Grid
+    private var statsGridSection: some View {
+        VStack(spacing: DesignSpacing.medium) {
+            HStack(spacing: DesignSpacing.medium) {
+                StatCard(title: "AVG OIL", value: String(format: "%.1f", viewModel.averageOil), unit: "/10", icon: "drop.fill", color: DesignColors.ceruleanHydration)
+                StatCard(title: "AVG DRY", value: String(format: "%.1f", viewModel.averageDryness), unit: "/10", icon: "sun.dust.fill", color: DesignColors.roseGold)
+            }
+            HStack(spacing: DesignSpacing.medium) {
+                StatCard(title: "AVG RED", value: String(format: "%.1f", viewModel.averageRedness), unit: "/10", icon: "thermometer.high", color: DesignColors.velvetCrimson)
+                StatCard(title: "AVG ACNE", value: String(format: "%.0f", viewModel.averageAcne), unit: "pts", icon: "face.dashed", color: DesignColors.sageBotanical)
+            }
+        }
+    }
+
+    // MARK: - Recent Entries
+    private var recentEntriesSection: some View {
+        VStack(alignment: .leading, spacing: DesignSpacing.standard) {
+            Text("Recent Logs")
+                .font(DesignTypography.titleUI)
+                .foregroundColor(DesignColors.luminousPearl)
+
+            if viewModel.allEntries.isEmpty {
+                Text("No entries yet.")
+                    .font(DesignTypography.bodyUI)
+                    .foregroundColor(DesignColors.liquidSilver)
+            } else {
+                VStack(spacing: DesignSpacing.small) {
+                    ForEach(viewModel.allEntries.prefix(5)) { entry in
+                        EntryCard(entry: entry, viewModel: viewModel)
+                    }
                 }
             }
         }
     }
 }
 
-// MARK: - Supporting Views
-
-struct LegendItem: View {
-    let name: String
-    let color: Color
-    var body: some View {
-        HStack(spacing: 4) {
-            Circle().fill(color).frame(width: 8, height: 8)
-            Text(name)
-                .font(.appCaptionText)
-                .foregroundColor(.appTextSecondary)
-        }
-    }
-}
-
-struct StatBox: View {
-    let sfSymbol: String
+// MARK: - Subviews
+struct StatCard: View {
     let title: String
     let value: String
-
+    let unit: String
+    let icon: String
+    let color: Color
+    
     var body: some View {
-        CardView {
-            VStack(spacing: AppSpacing.xs) {
-                Image(systemName: sfSymbol)
-                    .font(.system(size: 20))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundColor(.appAccentPrimary)
-
-                Text(value)
-                    .font(.appSectionTitle)
-                    .foregroundColor(.appTextPrimary)
-
+        VStack(alignment: .leading, spacing: DesignSpacing.small) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(color)
+                Spacer()
                 Text(title)
-                    .font(.appCaptionText)
-                    .foregroundColor(.appTextSecondary)
+                    .font(DesignTypography.microUI)
+                    .foregroundColor(DesignColors.liquidSilver)
             }
-            .frame(maxWidth: .infinity)
+            
+            HStack(alignment: .lastTextBaseline, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 28, weight: .light, design: .serif))
+                    .foregroundColor(DesignColors.luminousPearl)
+                Text(unit)
+                    .font(DesignTypography.microUI)
+                    .foregroundColor(DesignColors.voidAsh)
+            }
         }
+        .padding(DesignSpacing.standard)
+        .glassCard()
     }
 }
 
-struct EntryRow: View {
+struct EntryCard: View {
     let entry: SkinEntry
     let viewModel: TrackerViewModel
     @State private var image: UIImage? = nil
 
     var body: some View {
-        HStack(spacing: AppSpacing.sm) {
-            // SF Symbol for mood instead of emoji
-            Image(systemName: entry.mood.sfSymbol)
-                .font(.system(size: 20))
-                .symbolRenderingMode(.hierarchical)
-                .foregroundColor(.appAccentPrimary)
-                .frame(width: 32)
-
+        HStack(spacing: DesignSpacing.standard) {
+            // Mood / Day
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.date, style: .date)
-                    .font(.appHeading3)
-                    .foregroundColor(.appTextPrimary)
-
-                Text("Oil \(entry.oilLevel) · Dry \(entry.drynessLevel) · Red \(entry.rednessLevel)")
-                    .font(.appCaptionText)
-                    .foregroundColor(.appTextSecondary)
+                    .font(DesignTypography.bodyStrongUI)
+                    .foregroundColor(DesignColors.luminousPearl)
+                Text(entry.mood.displayName)
+                    .font(DesignTypography.captionUI)
+                    .foregroundColor(DesignColors.liquidSilver)
             }
-
+            
             Spacer()
-
+            
+            // Metrics Mini
+            HStack(spacing: 8) {
+                metricDot(val: entry.oilLevel, color: DesignColors.ceruleanHydration)
+                metricDot(val: entry.drynessLevel, color: DesignColors.roseGold)
+                metricDot(val: entry.rednessLevel, color: DesignColors.velvetCrimson)
+            }
+            
+            // Photo Preview
             if let photoName = entry.photoFileName {
                 if let img = image {
                     Image(uiImage: img)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 40, height: 40)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .frame(width: 44, height: 44)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 } else {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color.appBackgroundSecondary)
-                        .frame(width: 40, height: 40)
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(DesignColors.voidAsh)
+                        .frame(width: 44, height: 44)
                         .onAppear {
                             image = viewModel.loadPhoto(named: photoName)
                         }
                 }
             }
         }
-        .padding(.vertical, 8)
-        .contentShape(Rectangle())
+        .padding(DesignSpacing.standard)
+        .glassCard()
         .contextMenu {
             Button(role: .destructive) {
                 if let index = viewModel.allEntries.firstIndex(where: { $0.id == entry.id }) {
@@ -266,6 +356,13 @@ struct EntryRow: View {
             } label: {
                 Label("Delete", systemImage: "trash")
             }
+        }
+    }
+    
+    private func metricDot(val: Int, color: Color) -> some View {
+        ZStack {
+            Circle().stroke(color.opacity(0.2), lineWidth: 1).frame(width: 14, height: 14)
+            Circle().fill(color).frame(width: 4, height: 4)
         }
     }
 }

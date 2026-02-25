@@ -12,8 +12,16 @@ public struct RoutineSessionView2: View {
     @StateObject private var viewModel: RoutineSessionViewModel
     @StateObject private var avatarViewModel: AvatarViewModel
     
-    init(routine: Routine, productManager: ProductManagerProtocol, activeSession: ActiveRoutineSession, voiceManager: VoiceManager) {
-        _viewModel = StateObject(wrappedValue: RoutineSessionViewModel(routine: routine, productManager: productManager, activeSession: activeSession))
+    @State private var pulseScale: CGFloat = 1.0
+    
+    init(routine: Routine, productManager: ProductManagerProtocol, progressManager: ProgressManagerProtocol, trackerManager: TrackerManagerProtocol, activeSession: ActiveRoutineSession, voiceManager: VoiceManager) {
+        _viewModel = StateObject(wrappedValue: RoutineSessionViewModel(
+            routine: routine,
+            productManager: productManager,
+            progressManager: progressManager,
+            trackerManager: trackerManager,
+            activeSession: activeSession
+        ))
         _avatarViewModel = StateObject(wrappedValue: AvatarViewModel(activeSession: activeSession, voiceManager: voiceManager))
     }
     
@@ -129,26 +137,30 @@ public struct RoutineSessionView2: View {
                         Text(viewModel.currentProduct?.name ?? viewModel.currentStep?.stepType.rawValue.capitalized ?? "Step")
                             .font(DesignTypography.titleUI)
                             .foregroundColor(DesignColors.luminousPearl)
+                            .lineLimit(1)
                         
                         Text(viewModel.currentStep?.instruction.isEmpty == false ? viewModel.currentStep!.instruction : "Follow standard instructions.")
                             .font(DesignTypography.bodyUI)
                             .foregroundColor(DesignColors.liquidSilver)
                             .lineLimit(2)
                     }
+                    .layoutPriority(1)
                     
-                    Spacer()
+                    Spacer(minLength: DesignSpacing.small)
                     
                     // Elegant Timer
                     VStack(alignment: .trailing, spacing: DesignSpacing.micro) {
                         Text(timeString(from: viewModel.timeRemaining))
                             .font(.system(size: 28, weight: .light, design: .rounded))
                             .foregroundColor(DesignColors.luminousPearl)
+                            .fixedSize()
                         
                         Text("REMAINING")
                             .font(DesignTypography.microUI)
                             .captionTracking()
                             .foregroundColor(DesignColors.liquidSilver)
                     }
+                    .fixedSize(horizontal: true, vertical: false)
                 }
                 .padding(DesignSpacing.medium)
                 .background(.ultraThinMaterial)
@@ -157,18 +169,16 @@ public struct RoutineSessionView2: View {
                     RoundedRectangle(cornerRadius: DesignRadius.container, style: .continuous)
                         .stroke(DesignShadows.innerGlow, lineWidth: 1)
                 )
-                .padding(.horizontal, DesignSpacing.standard)
+                .padding(.horizontal, DesignSpacing.medium)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 
                 // Controls Pill
                 HStack(spacing: DesignSpacing.large) {
                     // Back
-                    Button(action: { viewModel.previousStep() }) {
-                        Image(systemName: "backward.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(viewModel.currentStepIndex > 0 ? DesignColors.liquidSilver : DesignColors.voidAsh)
-                    }
-                    .disabled(viewModel.currentStepIndex == 0)
+                    MicroButton(icon: "backward.fill",
+                                color: viewModel.currentStepIndex > 0 ? DesignColors.liquidSilver : DesignColors.voidAsh,
+                                action: { viewModel.previousStep() })
+                        .disabled(viewModel.currentStepIndex == 0)
                     
                     // Play/Pause
                     Button(action: { viewModel.toggleTimer() }) {
@@ -176,25 +186,28 @@ public struct RoutineSessionView2: View {
                             Circle()
                                 .fill(viewModel.isTimerActive ? DesignColors.voidAsh : DesignColors.luminousPearl)
                                 .frame(width: 64, height: 64)
-                                .shadow(color: DesignColors.luminousPearl.opacity(viewModel.isTimerActive ? 0 : 0.2), radius: 10, y: 5)
+                                .shadow(color: DesignColors.luminousPearl.opacity(viewModel.isTimerActive ? 0 : 0.25), radius: 12, y: 6)
                             
                             Image(systemName: viewModel.isTimerActive ? "pause.fill" : "play.fill")
                                 .font(.system(size: 24))
                                 .foregroundColor(viewModel.isTimerActive ? DesignColors.luminousPearl : DesignColors.voidObsidian)
                         }
                     }
+                    .buttonStyle(TactilePressStyle())
+                    
                     // Next / Skip
-                    Button(action: { viewModel.nextStep() }) {
-                        Image(systemName: "forward.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(DesignColors.luminousPearl)
-                    }
+                    MicroButton(icon: "forward.fill",
+                                color: DesignColors.luminousPearl,
+                                action: { viewModel.nextStep() })
                 }
                 .padding(.vertical, DesignSpacing.standard)
-                .padding(.bottom, DesignSpacing.standard)
+                .padding(.bottom, DesignSpacing.medium)
                 
             } else {
-                // Done Button
+                // Celebration + Done
+                completionView
+                    .transition(.scale(scale: 0.8).combined(with: .opacity))
+                    
                 Button(action: { presentationMode.wrappedValue.dismiss() }) {
                     Text("Finish Routine")
                 }
@@ -210,17 +223,26 @@ public struct RoutineSessionView2: View {
     private var completionView: some View {
         VStack(spacing: DesignSpacing.medium) {
             ZStack {
-                // Supernova bloom
+                // Pulsing supernova
+                Circle()
+                    .fill(DesignColors.roseGold.opacity(0.3))
+                    .frame(width: 160, height: 160)
+                    .blur(radius: 50)
+                    .scaleEffect(pulseScale)
+                    .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: pulseScale)
+                
+                // Core bloom
                 Circle()
                     .fill(DesignColors.luminousPearl)
-                    .frame(width: 120, height: 120)
-                    .blur(radius: 40)
+                    .frame(width: 100, height: 100)
+                    .blur(radius: 30)
                 
                 Image(systemName: "sparkles")
                     .font(.system(size: 48, weight: .light))
                     .foregroundColor(DesignColors.voidObsidian)
             }
             .padding(.bottom, DesignSpacing.standard)
+            .onAppear { pulseScale = 1.3 }
             
             Text("Routine Complete")
                 .font(DesignTypography.displayEditorial)
@@ -251,5 +273,36 @@ public struct RoutineSessionView2: View {
         let minutes = Int(interval) / 60
         let seconds = Int(interval) % 60
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+}
+
+// MARK: - Helper Views & Styles
+
+struct MicroButton: View {
+    let icon: String
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(Color.white.opacity(0.05))
+                    .frame(width: 44, height: 44)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                    .foregroundColor(color)
+            }
+        }
+        .buttonStyle(TactilePressStyle())
+    }
+}
+
+struct TactilePressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }

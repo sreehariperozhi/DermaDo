@@ -11,6 +11,8 @@ class RoutineSessionViewModel: ObservableObject {
     // MARK: - Dependencies
     private let routine: Routine
     private let productManager: ProductManagerProtocol
+    private let progressManager: ProgressManagerProtocol
+    private let trackerManager: TrackerManagerProtocol
     private weak var activeSession: ActiveRoutineSession?
     
     // MARK: - Published State
@@ -43,9 +45,11 @@ class RoutineSessionViewModel: ObservableObject {
     
     // MARK: - Initialization
     
-    init(routine: Routine, productManager: ProductManagerProtocol, activeSession: ActiveRoutineSession? = nil) {
+    init(routine: Routine, productManager: ProductManagerProtocol, progressManager: ProgressManagerProtocol, trackerManager: TrackerManagerProtocol, activeSession: ActiveRoutineSession? = nil) {
         self.routine = routine
         self.productManager = productManager
+        self.progressManager = progressManager
+        self.trackerManager = trackerManager
         self.activeSession = activeSession
         
         loadStepData()
@@ -122,9 +126,55 @@ class RoutineSessionViewModel: ObservableObject {
     private func finishSession() {
         stopTimer()
         sessionComplete = true
+        
+        // Record progress in ProgressManager (streaks, total completions)
+        progressManager.recordCompletion()
+        
+        // Link routine to today's skin entry in TrackerManager
+        linkRoutineToToday()
+        
         withAnimation(DesignMotion.heroMaterialize) {
             activeSession?.currentStep = .none
             activeSession?.progressPercentage = 1.0
+        }
+    }
+    
+    private func linkRoutineToToday() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Find today's entry or create a minimal one
+        let allEntries = trackerManager.fetchAllEntries()
+        if let existing = allEntries.first(where: { calendar.isDate($0.date, inSameDayAs: today) }) {
+            // Already has an entry, add this routine ID if not present
+            if !existing.completedRoutineIds.contains(routine.id) {
+                var routineIds = existing.completedRoutineIds
+                routineIds.append(routine.id)
+                // Use a shadow copy to simulate mutation of immutable struct
+                let newEntry = SkinEntry(
+                    id: existing.id,
+                    date: existing.date,
+                    acneCount: existing.acneCount,
+                    oilLevel: existing.oilLevel,
+                    drynessLevel: existing.drynessLevel,
+                    rednessLevel: existing.rednessLevel,
+                    overallScore: existing.overallScore,
+                    mood: existing.mood,
+                    photoFileName: existing.photoFileName,
+                    notes: existing.notes,
+                    completedRoutineIds: routineIds,
+                    createdAt: existing.createdAt,
+                    updatedAt: Date()
+                )
+                trackerManager.saveEntry(newEntry)
+            }
+        } else {
+            // Create a fresh entry for today with this routine completed
+            let newEntry = SkinEntry(
+                date: today,
+                completedRoutineIds: [routine.id]
+            )
+            trackerManager.saveEntry(newEntry)
         }
     }
     

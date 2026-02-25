@@ -62,6 +62,8 @@ public struct HomeDashboardView: View {
                 RoutineSessionView2(
                     routine: routine,
                     productManager: dependencies.productManager,
+                    progressManager: dependencies.progressManager,
+                    trackerManager: dependencies.trackerManager,
                     activeSession: activeSession,
                     voiceManager: voiceManager
                 )

@@ -9,8 +9,13 @@ struct RoutineSessionView: View {
     @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel: RoutineSessionViewModel
 
-    init(routine: Routine, productManager: ProductManagerProtocol) {
-        _viewModel = StateObject(wrappedValue: RoutineSessionViewModel(routine: routine, productManager: productManager))
+    init(routine: Routine, productManager: ProductManagerProtocol, progressManager: ProgressManagerProtocol, trackerManager: TrackerManagerProtocol) {
+        _viewModel = StateObject(wrappedValue: RoutineSessionViewModel(
+            routine: routine,
+            productManager: productManager,
+            progressManager: progressManager,
+            trackerManager: trackerManager
+        ))
     }
 
     var body: some View {

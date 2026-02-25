@@ -11,92 +11,110 @@ struct RoutineDetailView: View {
 
     var body: some View {
         NavigationView {
-            Form {
-                Section(header: Text("Details").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                    TextField("Routine Name", text: $viewModel.name)
+            ZStack {
+                // Void background
+                DesignColors.voidObsidian.ignoresSafeArea()
 
-                    Picker("Time of Day", selection: $viewModel.timeOfDay) {
-                        Label("Morning", systemImage: "sun.max").tag(TimeOfDay.morning)
-                        Label("Evening", systemImage: "moon.stars").tag(TimeOfDay.evening)
-                        Label("Both", systemImage: "clock").tag(TimeOfDay.both)
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
+                Form {
+                    // MARK: - Details Section
+                    Section(header: sectionHeader("Details")) {
+                        TextField("Routine Name", text: $viewModel.name)
+                            .font(DesignTypography.bodyUI)
+                            .foregroundColor(DesignColors.luminousPearl)
 
-                    Toggle("Enabled", isOn: $viewModel.isEnabled)
-                        .tint(.appAccentPrimary)
-                }
-
-                Section(header: Text("Repeat Days").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                    DayPickerView(selectedDays: $viewModel.repeatDays)
-                        .frame(height: 60)
-                }
-
-                Section(header: Text("Steps").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                    ForEach(Array(viewModel.steps.enumerated()), id: \.element.id) { index, step in
-                        Button(action: {
-                            stepToEdit = step
-                        }) {
-                            HStack {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.appAccentSubtle)
-                                        .frame(width: 26, height: 26)
-
-                                    Text("\(index + 1)")
-                                        .font(.appNumericSmall)
-                                        .foregroundColor(.appAccentPrimary)
-                                }
-
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(step.instruction)
-                                        .font(.appBody)
-                                        .foregroundColor(.appTextPrimary)
-
-                                    if let productId = step.productId,
-                                       let product = dependencies.productManager.fetchProduct(byId: productId) {
-                                        HStack(spacing: 4) {
-                                            Image(systemName: product.category.icon)
-                                                .font(.system(size: 10))
-                                                .symbolRenderingMode(.hierarchical)
-                                            Text(product.name)
-                                                .font(.system(size: 12, weight: .medium))
-                                        }
-                                        .foregroundColor(.appAccentPrimary)
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
-                                        .background(Color.appAccentSubtle)
-                                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                                    }
-                                }
-
-                                Spacer()
-
-                                if let duration = step.durationSeconds {
-                                    Text("\(duration)s")
-                                        .font(.appCaptionText)
-                                        .foregroundColor(.appTextSecondary)
-                                }
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(.appTextTertiary)
-                                    .padding(.leading, 4)
-                            }
-                            .contentShape(Rectangle())
+                        Picker("Time of Day", selection: $viewModel.timeOfDay) {
+                            Label("Morning", systemImage: "sun.max").tag(TimeOfDay.morning)
+                            Label("Evening", systemImage: "moon.stars").tag(TimeOfDay.evening)
+                            Label("Both", systemImage: "clock").tag(TimeOfDay.both)
                         }
-                        .buttonStyle(.plain)
-                    }
-                    .onDelete(perform: viewModel.removeStep)
-                    .onMove(perform: viewModel.moveStep)
+                        .pickerStyle(SegmentedPickerStyle())
 
-                    Button(action: { showingStepPicker = true }) {
-                        Label("Add Step", systemImage: "plus.circle")
-                            .foregroundColor(.appAccentPrimary)
+                        Toggle("Enabled", isOn: $viewModel.isEnabled)
+                            .tint(DesignColors.roseGold)
+                            .foregroundColor(DesignColors.luminousPearl)
                     }
+                    .listRowBackground(Color.white.opacity(0.05))
+
+                    // MARK: - Repeat Days Section
+                    Section(header: sectionHeader("Repeat Days")) {
+                        DayPickerView(selectedDays: $viewModel.repeatDays)
+                            .frame(height: 60)
+                    }
+                    .listRowBackground(Color.white.opacity(0.05))
+
+                    // MARK: - Steps Section
+                    Section(header: sectionHeader("Steps")) {
+                        ForEach(Array(viewModel.steps.enumerated()), id: \.element.id) { index, step in
+                            Button(action: {
+                                stepToEdit = step
+                            }) {
+                                HStack {
+                                    // Step number badge
+                                    ZStack {
+                                        Circle()
+                                            .fill(DesignColors.roseGold.opacity(0.15))
+                                            .frame(width: 28, height: 28)
+
+                                        Text("\(index + 1)")
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundColor(DesignColors.roseGold)
+                                    }
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(step.instruction.isEmpty ? step.stepType.rawValue.capitalized : step.instruction)
+                                            .font(DesignTypography.bodyUI)
+                                            .foregroundColor(DesignColors.luminousPearl)
+
+                                        if let productId = step.productId,
+                                           let product = dependencies.productManager.fetchProduct(byId: productId) {
+                                            HStack(spacing: 4) {
+                                                Image(systemName: product.category.icon)
+                                                    .font(.system(size: 10))
+                                                Text(product.name)
+                                                    .font(.system(size: 12, weight: .medium))
+                                            }
+                                            .foregroundColor(DesignColors.roseGold)
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(DesignColors.roseGold.opacity(0.1))
+                                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                        }
+                                    }
+
+                                    Spacer()
+
+                                    if let duration = step.durationSeconds {
+                                        Text("\(duration)s")
+                                            .font(DesignTypography.captionUI)
+                                            .foregroundColor(DesignColors.liquidSilver)
+                                    }
+
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(DesignColors.liquidSilver.opacity(0.4))
+                                        .padding(.leading, 4)
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .onDelete(perform: viewModel.removeStep)
+                        .onMove(perform: viewModel.moveStep)
+
+                        Button(action: { showingStepPicker = true }) {
+                            HStack(spacing: DesignSpacing.small) {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(DesignColors.roseGold)
+                                Text("Add Step")
+                                    .foregroundColor(DesignColors.roseGold)
+                            }
+                        }
+                    }
+                    .listRowBackground(Color.white.opacity(0.05))
                 }
+                .scrollContentBackground(.hidden)
             }
-            .scrollContentBackground(.hidden)
-            .background(Color.appBackgroundPrimary.ignoresSafeArea())
+            .colorScheme(.dark)
             .navigationTitle(viewModel.modeTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -104,7 +122,7 @@ struct RoutineDetailView: View {
                     Button("Cancel") {
                         presentationMode.wrappedValue.dismiss()
                     }
-                    .foregroundColor(.appAccentPrimary)
+                    .foregroundColor(DesignColors.liquidSilver)
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -116,7 +134,8 @@ struct RoutineDetailView: View {
                             viewModel.save()
                         }
                     }
-                    .foregroundColor(.appAccentPrimary)
+                    .foregroundColor(DesignColors.roseGold)
+                    .fontWeight(.semibold)
                 }
             }
             .confirmationDialog("Choose a step type", isPresented: $showingStepPicker, titleVisibility: .visible) {
@@ -159,6 +178,15 @@ struct RoutineDetailView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Helpers
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(DesignTypography.captionUI)
+            .captionTracking()
+            .foregroundColor(DesignColors.liquidSilver)
     }
 }
 

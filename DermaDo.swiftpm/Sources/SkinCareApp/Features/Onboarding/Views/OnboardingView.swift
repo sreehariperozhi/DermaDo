@@ -94,7 +94,7 @@ public struct OnboardingView: View {
     // MARK: - Foreground Content
     
     private var foregroundContent: some View {
-        VStack(spacing: DesignSpacing.large) {
+        VStack(spacing: DesignSpacing.medium) {
             
             // Question Text — Editorial Typography
             Text(viewModel.questionText)
@@ -102,26 +102,33 @@ public struct OnboardingView: View {
                 .foregroundColor(DesignColors.luminousPearl)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, DesignSpacing.standard)
                 .id(viewModel.currentStage) // Forces text re-render for transition
                 .transition(.opacity.combined(with: .offset(y: 20)))
             
             // Stage-Specific Controls
-            switch viewModel.currentStage {
-            case .welcome:
-                EmptyView() // Just the button below
-                
-            case .name:
-                nameInput
-                
-            case .skinTone:
-                skinTonePicker
-                
-            case .skinType:
-                skinTypePicker
-                
-            case .ready:
-                EmptyView() // Just the button below
+            Group {
+                switch viewModel.currentStage {
+                case .welcome:
+                    EmptyView()
+                        .frame(height: 20)
+                    
+                case .name:
+                    nameInput
+                    
+                case .skinTone:
+                    skinTonePicker
+                    
+                case .skinType:
+                    skinTypePicker
+                    
+                case .ready:
+                    EmptyView()
+                        .frame(height: 20)
+                }
             }
+            .frame(maxWidth: .infinity)
             
             // Primary CTA Button
             Button(action: { viewModel.advance() }) {
@@ -137,11 +144,20 @@ public struct OnboardingView: View {
                     .shadow(color: DesignColors.luminousPearl.opacity(viewModel.canAdvance ? 0.15 : 0), radius: 20, y: 10)
             }
             .disabled(!viewModel.canAdvance)
-            .padding(.horizontal, DesignSpacing.large)
+            .padding(.horizontal, DesignSpacing.standard)
+            .padding(.top, DesignSpacing.small)
             .animation(DesignMotion.editorialSpring, value: viewModel.canAdvance)
         }
-        .padding(.horizontal, DesignSpacing.large)
-        .padding(.bottom, DesignSpacing.heroic)
+        .padding(.horizontal, DesignSpacing.medium)
+        .padding(.bottom, DesignSpacing.large)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [.clear, DesignColors.voidObsidian.opacity(0.8), DesignColors.voidObsidian]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+        )
     }
     
     // MARK: - Name Input
