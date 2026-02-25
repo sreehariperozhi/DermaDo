@@ -22,9 +22,11 @@ class RoutineDetailViewModel: ObservableObject {
     @Published var repeatDays: Set<DayOfWeek>
     @Published var isEnabled: Bool
     @Published var notifyReminder: Bool
+    @Published var reminderTime: Date
     @Published var steps: [RoutineStep]
     @Published var showValidationAlert: Bool = false
     @Published var validationMessage: String = ""
+    @Published var orderViolationMessage: String? = nil
     @Published var shouldDismiss: Bool = false
 
     private let existingId: UUID?
@@ -44,7 +46,8 @@ class RoutineDetailViewModel: ObservableObject {
             timeOfDay = .morning
             repeatDays = Set(DayOfWeek.allCases)
             isEnabled = true
-            notifyReminder = false
+            notifyReminder = true // Default to true when adding
+            reminderTime = Calendar.current.date(bySettingHour: 8, minute: 0, second: 0, of: Date()) ?? Date()
             steps = []
 
         case .edit(let routine):
@@ -55,6 +58,7 @@ class RoutineDetailViewModel: ObservableObject {
             repeatDays = Set(routine.repeatDays)
             isEnabled = routine.isEnabled
             notifyReminder = routine.notifyReminder
+            reminderTime = routine.reminderTime ?? Calendar.current.date(bySettingHour: 8, minute: 0, second: 0, of: Date()) ?? Date()
             steps = routine.steps.sorted { $0.order < $1.order }
         }
         
@@ -64,6 +68,7 @@ class RoutineDetailViewModel: ObservableObject {
         self.repeatDays = repeatDays
         self.isEnabled = isEnabled
         self.notifyReminder = notifyReminder
+        self.reminderTime = reminderTime
         self.steps = steps
     }
 
@@ -87,6 +92,22 @@ class RoutineDetailViewModel: ObservableObject {
     func moveStep(from source: IndexSet, to destination: Int) {
         steps.move(fromOffsets: source, toOffset: destination)
         renumberSteps()
+        
+        // Validation check for reorder
+        let result = validate()
+        if !result.isValid, let firstViolation = result.violations.first {
+            // Pick a friendly message
+            let typeName = RoutineValidationEngine.displayName(firstViolation.stepType)
+            let beforeName = RoutineValidationEngine.displayName(firstViolation.shouldComeBefore)
+            orderViolationMessage = "\(typeName) usually comes before \(beforeName)."
+            
+            // Auto-dismiss after 2 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                withAnimation {
+                    self?.orderViolationMessage = nil
+                }
+            }
+        }
     }
 
     func updateStepDuration(at index: Int, seconds: Int?) {
@@ -151,7 +172,7 @@ class RoutineDetailViewModel: ObservableObject {
             repeatDays: Array(repeatDays),
             isEnabled: isEnabled,
             notifyReminder: notifyReminder,
-            reminderTime: nil,
+            reminderTime: reminderTime,
             createdAt: existingCreatedAt,
             updatedAt: Date()
         )

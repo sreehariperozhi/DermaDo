@@ -34,6 +34,31 @@ struct EditRoutineStepView: View {
                         }
                     }
                 }
+
+                Section(header: Text("Repeat Options").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
+                    Picker("Frequency", selection: Binding(
+                        get: { step.repeatDays.count == 7 ? "daily" : "specific" },
+                        set: { newValue in
+                            if newValue == "daily" {
+                                step.repeatDays = DayOfWeek.allCases
+                            }
+                        }
+                    )) {
+                        Text("Daily").tag("daily")
+                        Text("Specific Days").tag("specific")
+                    }
+                    .pickerStyle(.segmented)
+
+                    if step.repeatDays.count < 7 || true { // Always show if we want custom toggling
+                        DayPickerView(selectedDays: Binding(
+                            get: { Set(step.repeatDays) },
+                            set: { step.repeatDays = Array($0).sorted { d1, d2 in
+                                (DayOfWeek.allCases.firstIndex(of: d1) ?? 0) < (DayOfWeek.allCases.firstIndex(of: d2) ?? 0)
+                            }}
+                        ))
+                        .padding(.vertical, AppSpacing.xs)
+                    }
+                }
                 
                 Section {
                     Button(role: .destructive, action: {

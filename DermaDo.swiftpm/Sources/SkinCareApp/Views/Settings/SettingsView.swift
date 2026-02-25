@@ -15,84 +15,116 @@ struct SettingsView: View {
 
 struct SettingsViewContent: View {
     @StateObject var viewModel: SettingsViewModel
-    @State private var isExporting: Bool = false
-    @State private var isImporting: Bool = false
 
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Appearance").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
+                // Section 1: Notifications
+                Section {
+                    Toggle(isOn: $viewModel.notificationsEnabled) {
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "bell.badge.fill")
+                                .foregroundColor(.appAccentPrimary)
+                                .symbolRenderingMode(.hierarchical)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Notifications")
+                                    .font(.appBody)
+                                Text("Master control for all reminders")
+                                    .font(.appCaptionText)
+                                    .foregroundColor(.appTextSecondary)
+                            }
+                        }
+                    }
+                    .tint(.appAccentPrimary)
+
+                    if viewModel.notificationsEnabled {
+                        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                            Text("Default Reminder Times")
+                                .font(.appCaptionText)
+                                .foregroundColor(.appTextSecondary)
+                                .padding(.top, 4)
+                            
+                            DatePicker("Morning Routine", selection: $viewModel.morningReminderTime, displayedComponents: .hourAndMinute)
+                                .font(.appBody)
+                            
+                            DatePicker("Evening Routine", selection: $viewModel.eveningReminderTime, displayedComponents: .hourAndMinute)
+                                .font(.appBody)
+                        }
+                        .padding(.vertical, 4)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+                } header: {
+                    Text("Notifications").font(.appCaptionText).foregroundColor(.appTextSecondary)
+                }
+
+                // Section 2: Voice
+                Section {
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "waveform")
+                                .foregroundColor(.appAccentPrimary)
+                            Text("Voice Tone")
+                                .font(.appBody)
+                            Spacer()
+                            Picker("Tone", selection: $viewModel.voiceTone) {
+                                ForEach(VoiceTone.allCases, id: \.self) { tone in
+                                    Text(tone.displayName).tag(tone)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .tint(.appAccentPrimary)
+                        }
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text("Speaking Speed")
+                                    .font(.appBody)
+                                Spacer()
+                                Text(String(format: "%.1fx", viewModel.voiceSpeed))
+                                    .font(.appNumericSmall)
+                                    .foregroundColor(.appAccentPrimary)
+                            }
+                            
+                            Slider(value: $viewModel.voiceSpeed, in: 0.5...2.0, step: 0.1)
+                                .tint(.appAccentPrimary)
+                        }
+                        .padding(.top, 4)
+                    }
+                    .padding(.vertical, 4)
+                } header: {
+                    Text("Voice Assistant").font(.appCaptionText).foregroundColor(.appTextSecondary)
+                }
+
+                // Section 3: Appearance
+                Section {
                     Picker("Theme", selection: $viewModel.selectedTheme) {
                         Label("Light", systemImage: "sun.max")
                             .tag(AppTheme.light)
                         Label("Dark", systemImage: "moon.stars")
                             .tag(AppTheme.dark)
-                        Label("System", systemImage: "gear")
+                        Label("System", systemImage: "gearshape")
                             .tag(AppTheme.system)
                     }
                     .pickerStyle(.inline)
                     .tint(.appAccentPrimary)
+                } header: {
+                    Text("Appearance").font(.appCaptionText).foregroundColor(.appTextSecondary)
                 }
 
-                Section(header: Text("Notifications").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                    Toggle("Enable Notifications", isOn: $viewModel.notificationsEnabled)
-                        .tint(.appAccentPrimary)
-
-                    if viewModel.notificationsEnabled {
-                        DatePicker("Morning Reminder", selection: $viewModel.morningReminderTime, displayedComponents: .hourAndMinute)
-                        DatePicker("Evening Reminder", selection: $viewModel.eveningReminderTime, displayedComponents: .hourAndMinute)
-                    }
-                }
-
-                Section(header: Text("Data Management").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                    Button(action: {
-                        viewModel.exportData()
-                    }) {
-                        Label("Export Data", systemImage: "square.and.arrow.up")
-                            .foregroundColor(.appAccentPrimary)
-                    }
-                    .onChange(of: viewModel.exportURL) { url in
-                        if url != nil {
-                            isExporting = true
-                        }
-                    }
-                    .fileExporter(
-                        isPresented: $isExporting,
-                        document: viewModel.exportURL.map { JSONFile(url: $0) },
-                        contentType: .json,
-                        defaultFilename: "skincare_backup"
-                    ) { result in
-                        // Handle result
-                    }
-
-                    Button(action: {
-                        isImporting = true
-                    }) {
-                        Label("Import Data", systemImage: "square.and.arrow.down")
-                            .foregroundColor(.appAccentPrimary)
-                    }
-                    .fileImporter(
-                        isPresented: $isImporting,
-                        allowedContentTypes: [.json],
-                        allowsMultipleSelection: false
-                    ) { result in
-                        switch result {
-                        case .success(let urls):
-                            if let url = urls.first {
-                                guard url.startAccessingSecurityScopedResource() else { return }
-                                viewModel.importData(from: url)
-                                url.stopAccessingSecurityScopedResource()
-                            }
-                        case .failure(let error):
-                             print("Import failed: \(error.localizedDescription)")
-                        }
-                    }
-                }
-
+                // Footer
                 Section {
-                    Text("App Version 1.0.0")
-                        .font(.appCaptionText)
-                        .foregroundColor(.appTextSecondary)
+                    VStack(alignment: .center, spacing: 8) {
+                        Text("Version 2.1.0")
+                            .font(.appCaptionText)
+                            .foregroundColor(.appTextTertiary)
+                        Text("Designed with care for your skin.")
+                            .font(.system(size: 10, weight: .medium, design: .serif))
+                            .italic()
+                            .foregroundColor(.appTextTertiary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
                 }
             }
             .scrollContentBackground(.hidden)
@@ -101,9 +133,7 @@ struct SettingsViewContent: View {
             .alert(isPresented: $viewModel.showError) {
                 Alert(title: Text("Error"), message: Text(viewModel.errorMessage), dismissButton: .default(Text("OK")))
             }
-            .alert(isPresented: $viewModel.showImportSuccess) {
-                Alert(title: Text("Success"), message: Text("Data imported successfully."), dismissButton: .default(Text("OK")))
-            }
+            .animation(.default, value: viewModel.notificationsEnabled)
         }
     }
 }

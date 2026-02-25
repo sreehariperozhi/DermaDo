@@ -23,8 +23,8 @@ public enum DesignColors {
     /// Primary interactive color, signifies luxury/skin.
     public static let roseGold = Color(hex: "#E0A96D")
     
-    /// Secondary text, inactive states, subtle dividers.
-    public static let liquidSilver = Color(hex: "#B1B3B5")
+    /// Secondary text, inactive states, subtle dividers. (Brightened for contrast)
+    public static let liquidSilver = Color(hex: "#BFBAB3")
     
     /// Default skin tone for the avatar base
     public static let sandalwoodMedium = Color(hex: "#D2A28A")

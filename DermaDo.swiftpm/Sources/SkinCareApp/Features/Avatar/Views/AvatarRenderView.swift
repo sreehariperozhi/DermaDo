@@ -83,19 +83,14 @@ public struct AvatarRenderView: View {
                 .offset(y: -20)
                 
                 // Contextual Overlay (Cleanser Foam, Mask)
-                if state.activeOverlay == "avatar_overlay_cleanser" {
-                    Circle()
-                        .fill(Color.white.opacity(0.9))
-                        .frame(width: 100, height: 60)
-                        .blur(radius: 6)
-                        .offset(y: 10)
-                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
-                } else if state.activeOverlay == "avatar_overlay_mask" {
-                    Capsule()
-                        .fill(DesignColors.ceruleanHydration.opacity(0.7))
-                        .frame(width: 120, height: 100)
-                        .offset(y: 0)
-                        .transition(.opacity)
+                if let overlayName = state.activeOverlay {
+                    Image(overlayName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 160, height: 160)
+                        .opacity(0.7) // Within 0.6–0.8 range for a refined look
+                        .offset(y: overlayName == "avatar_overlay_cleanser" ? 10 : 0)
+                        .transition(.opacity.animation(.easeInOut(duration: 0.4))) // Smooth 0.4s fade-in
                 }
             }
             .frame(width: 300, height: 400)

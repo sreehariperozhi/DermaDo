@@ -10,155 +10,218 @@ struct RoutineDetailView: View {
     @State private var stepToEdit: RoutineStep?
 
     var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("Details").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                    TextField("Routine Name", text: $viewModel.name)
+        ZStack {
+            NavigationView {
+                Form {
+                    Section(header: Text("Details").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
+                        TextField("Routine Name", text: $viewModel.name)
 
-                    Picker("Time of Day", selection: $viewModel.timeOfDay) {
-                        Label("Morning", systemImage: "sun.max").tag(TimeOfDay.morning)
-                        Label("Evening", systemImage: "moon.stars").tag(TimeOfDay.evening)
-                        Label("Both", systemImage: "clock").tag(TimeOfDay.both)
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-
-                    Toggle("Enabled", isOn: $viewModel.isEnabled)
-                        .tint(.appAccentPrimary)
-                }
-
-                Section(header: Text("Repeat Days").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                    DayPickerView(selectedDays: $viewModel.repeatDays)
-                        .frame(height: 60)
-                }
-
-                Section(header: Text("Steps").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                    ForEach(Array(viewModel.steps.enumerated()), id: \.element.id) { index, step in
-                        Button(action: {
-                            stepToEdit = step
-                        }) {
-                            HStack {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.appAccentSubtle)
-                                        .frame(width: 26, height: 26)
-
-                                    Text("\(index + 1)")
-                                        .font(.appNumericSmall)
-                                        .foregroundColor(.appAccentPrimary)
-                                }
-
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(step.instruction)
-                                        .font(.appBody)
-                                        .foregroundColor(.appTextPrimary)
-
-                                    if let productId = step.productId,
-                                       let product = dependencies.productManager.fetchProduct(byId: productId) {
-                                        HStack(spacing: 4) {
-                                            Image(systemName: product.category.icon)
-                                                .font(.system(size: 10))
-                                                .symbolRenderingMode(.hierarchical)
-                                            Text(product.name)
-                                                .font(.system(size: 12, weight: .medium))
-                                        }
-                                        .foregroundColor(.appAccentPrimary)
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
-                                        .background(Color.appAccentSubtle)
-                                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                                    }
-                                }
-
-                                Spacer()
-
-                                if let duration = step.durationSeconds {
-                                    Text("\(duration)s")
-                                        .font(.appCaptionText)
-                                        .foregroundColor(.appTextSecondary)
-                                }
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(.appTextTertiary)
-                                    .padding(.leading, 4)
-                            }
-                            .contentShape(Rectangle())
+                        Picker("Time of Day", selection: $viewModel.timeOfDay) {
+                            Label("Morning", systemImage: "sun.max").tag(TimeOfDay.morning)
+                            Label("Evening", systemImage: "moon.stars").tag(TimeOfDay.evening)
+                            Label("Both", systemImage: "clock").tag(TimeOfDay.both)
                         }
-                        .buttonStyle(.plain)
-                    }
-                    .onDelete(perform: viewModel.removeStep)
-                    .onMove(perform: viewModel.moveStep)
+                        .pickerStyle(SegmentedPickerStyle())
 
-                    Button(action: { showingStepPicker = true }) {
-                        Label("Add Step", systemImage: "plus.circle")
-                            .foregroundColor(.appAccentPrimary)
+                        Toggle("Enabled", isOn: $viewModel.isEnabled)
+                            .tint(.appAccentPrimary)
+                    }
+
+                    Section(header: Text("Routine Time").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
+                        DatePicker("Reminder Time", selection: $viewModel.reminderTime, displayedComponents: .hourAndMinute)
+                            .datePickerStyle(.compact)
+                        
+                        Toggle("Reminders", isOn: $viewModel.notifyReminder)
+                            .tint(.appAccentPrimary)
+                    }
+
+                    Section(header: Text("Repeat Days").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
+                        DayPickerView(selectedDays: $viewModel.repeatDays)
+                            .frame(height: 60)
+                    }
+
+                    Section(header: Text("Steps").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
+                        ForEach(Array(viewModel.steps.enumerated()), id: \.element.id) { index, step in
+                            Button(action: {
+                                stepToEdit = step
+                            }) {
+                                HStack {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.appAccentSubtle)
+                                            .frame(width: 26, height: 26)
+
+                                        Text("\(index + 1)")
+                                            .font(.appNumericSmall)
+                                            .foregroundColor(.appAccentPrimary)
+                                    }
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(step.instruction)
+                                            .font(.appBody)
+                                            .foregroundColor(.appTextPrimary)
+
+                                        if let productId = step.productId,
+                                           let product = dependencies.productManager.fetchProduct(byId: productId) {
+                                            HStack(spacing: 4) {
+                                                Image(systemName: product.category.icon)
+                                                    .font(.system(size: 10))
+                                                    .symbolRenderingMode(.hierarchical)
+                                                Text(product.name)
+                                                    .font(.system(size: 12, weight: .medium))
+                                            }
+                                            .foregroundColor(.appAccentPrimary)
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(Color.appAccentSubtle)
+                                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                        }
+
+                                        if step.repeatDays.count < 7 {
+                                            Text(formattedDays(step.repeatDays))
+                                                .font(.system(size: 10, weight: .medium))
+                                                .foregroundColor(.appTextTertiary)
+                                                .padding(.top, 2)
+                                        }
+                                    }
+
+                                    Spacer()
+
+                                    if let duration = step.durationSeconds {
+                                        Text("\(duration)s")
+                                            .font(.appCaptionText)
+                                            .foregroundColor(.appTextSecondary)
+                                    }
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(.appTextTertiary)
+                                        .padding(.leading, 4)
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .onDelete(perform: viewModel.removeStep)
+                        .onMove(perform: viewModel.moveStep)
+
+                        Button(action: { showingStepPicker = true }) {
+                            Label("Add Step", systemImage: "plus.circle")
+                                .foregroundColor(.appAccentPrimary)
+                        }
                     }
                 }
-            }
-            .scrollContentBackground(.hidden)
-            .background(Color.appBackgroundPrimary.ignoresSafeArea())
-            .navigationTitle(viewModel.modeTitle)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        presentationMode.wrappedValue.dismiss()
+                .scrollContentBackground(.hidden)
+                .background(Color.appBackgroundPrimary.ignoresSafeArea())
+                .navigationTitle(viewModel.modeTitle)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Cancel") {
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                        .foregroundColor(.appAccentPrimary)
                     }
-                    .foregroundColor(.appAccentPrimary)
-                }
 
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
-                        let result = viewModel.checkValidation()
-                        if !result.isValid {
-                            showingLayerWarning = true
-                        } else {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Save") {
+                            let result = viewModel.checkValidation()
+                            if !result.isValid {
+                                showingLayerWarning = true
+                            } else {
+                                viewModel.save()
+                            }
+                        }
+                        .foregroundColor(.appAccentPrimary)
+                    }
+                }
+                .confirmationDialog("Choose a step type", isPresented: $showingStepPicker, titleVisibility: .visible) {
+                    Button("Cleanser") { viewModel.addStep(type: .cleanse) }
+                    Button("Exfoliant") { viewModel.addStep(type: .exfoliate) }
+                    Button("Toner") { viewModel.addStep(type: .tone) }
+                    Button("Serum / Treatment") { viewModel.addStep(type: .treat) }
+                    Button("Mask") { viewModel.addStep(type: .mask) }
+                    Button("Moisturizer") { viewModel.addStep(type: .moisturize) }
+                    Button("Sunscreen") { viewModel.addStep(type: .protect) }
+                    Button("Cancel", role: .cancel) { }
+                }
+                .alert(isPresented: $showingLayerWarning) {
+                    Alert(
+                        title: Text("Layer Order Warning"),
+                        message: Text(viewModel.validate().message),
+                        primaryButton: .default(Text("Auto-Fix")) {
+                            viewModel.autoFixOrder()
+                        },
+                        secondaryButton: .destructive(Text("Save Anyway")) {
                             viewModel.save()
                         }
+                    )
+                }
+                .sheet(item: $stepToEdit) { step in
+                    EditRoutineStepView(
+                        step: step,
+                        onSave: { updatedStep in
+                            viewModel.updateStep(updatedStep)
+                        },
+                        onDelete: { id in
+                            viewModel.deleteStep(id: id)
+                        }
+                    )
+                    .environmentObject(dependencies)
+                }
+                .onChange(of: viewModel.shouldDismiss) { shouldDismiss in
+                    if shouldDismiss {
+                        presentationMode.wrappedValue.dismiss()
                     }
-                    .foregroundColor(.appAccentPrimary)
                 }
             }
-            .confirmationDialog("Choose a step type", isPresented: $showingStepPicker, titleVisibility: .visible) {
-                Button("Cleanser") { viewModel.addStep(type: .cleanse) }
-                Button("Exfoliant") { viewModel.addStep(type: .exfoliate) }
-                Button("Toner") { viewModel.addStep(type: .tone) }
-                Button("Serum / Treatment") { viewModel.addStep(type: .treat) }
-                Button("Mask") { viewModel.addStep(type: .mask) }
-                Button("Moisturizer") { viewModel.addStep(type: .moisturize) }
-                Button("Sunscreen") { viewModel.addStep(type: .protect) }
-                Button("Cancel", role: .cancel) { }
-            }
-            .alert(isPresented: $showingLayerWarning) {
-                Alert(
-                    title: Text("Layer Order Warning"),
-                    message: Text(viewModel.validate().message),
-                    primaryButton: .default(Text("Auto-Fix")) {
-                        viewModel.autoFixOrder()
-                    },
-                    secondaryButton: .destructive(Text("Save Anyway")) {
-                        viewModel.save()
+            
+            // Toast Overlay
+            if let message = viewModel.orderViolationMessage {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 12) {
+                        Image(systemName: "info.circle.fill")
+                            .foregroundColor(.appAccentPrimary)
+                        Text(message)
+                            .font(.appBodySmall)
+                            .foregroundColor(.appTextPrimary)
                     }
-                )
-            }
-            .sheet(item: $stepToEdit) { step in
-                EditRoutineStepView(
-                    step: step,
-                    onSave: { updatedStep in
-                        viewModel.updateStep(updatedStep)
-                    },
-                    onDelete: { id in
-                        viewModel.deleteStep(id: id)
-                    }
-                )
-                .environmentObject(dependencies)
-            }
-            .onChange(of: viewModel.shouldDismiss) { shouldDismiss in
-                if shouldDismiss {
-                    presentationMode.wrappedValue.dismiss()
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(
+                        Capsule()
+                            .fill(.ultraThinMaterial)
+                            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                    )
+                    .padding(.bottom, 40)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(1)
                 }
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.orderViolationMessage)
             }
         }
+    }
+
+    private func formattedDays(_ days: [DayOfWeek]) -> String {
+        if days.count == 7 { return "Daily" }
+        if days.isEmpty { return "Never" }
+        
+        let sortedDays = days.sorted { d1, d2 in
+            (DayOfWeek.allCases.firstIndex(of: d1) ?? 0) < (DayOfWeek.allCases.firstIndex(of: d2) ?? 0)
+        }
+        
+        return sortedDays.map { day in
+            switch day {
+            case .monday: return "Mon"
+            case .tuesday: return "Tue"
+            case .wednesday: return "Wed"
+            case .thursday: return "Thu"
+            case .friday: return "Fri"
+            case .saturday: return "Sat"
+            case .sunday: return "Sun"
+            }
+        }.joined(separator: ", ")
     }
 }
 

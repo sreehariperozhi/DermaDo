@@ -55,8 +55,8 @@ enum AppSpacing {
     /// Medium radius for cards, sheets.
     static let radiusMedium: CGFloat = 16
 
-    /// Large radius for feature cards, hero sections (18–22 range).
-    static let radiusLarge: CGFloat = 20
+    /// Large radius for feature cards, hero sections (22–28 range).
+    static let radiusLarge: CGFloat = 24
 
     /// Full radius for pills, avatars.
     static let radiusFull: CGFloat = 9999
@@ -66,5 +66,5 @@ enum AppSpacing {
     /// Standard soft shadow configuration.
     static let shadowRadius: CGFloat = 8
     static let shadowOffset = CGSize(width: 0, height: 2)
-    static let shadowOpacity: Float = 0.05
+    static let shadowOpacity: Float = 0.08
 }

@@ -98,7 +98,7 @@ struct AppNavigationBar: View {
         .clipShape(Capsule())
         .overlay(
             Capsule()
-                .stroke(DesignShadows.innerGlow, lineWidth: 1)
+                .stroke(DesignShadows.innerGlow, lineWidth: 0.5)
         )
         .padding(.bottom, DesignSpacing.standard)
         .depthShadow() // Give it high mass/float

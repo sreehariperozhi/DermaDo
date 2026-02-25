@@ -21,7 +21,24 @@ struct AddEntryView: View {
                                 .resizable()
                                 .scaledToFill()
                                 .frame(height: 200)
-                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                                .overlay(
+                                    Group {
+                                        if viewModel.isAnalyzing {
+                                            ZStack {
+                                                Color.black.opacity(0.4)
+                                                VStack(spacing: 8) {
+                                                    ProgressView()
+                                                        .tint(.white)
+                                                    Text("Analyzing Skin...")
+                                                        .font(.appCaptionText)
+                                                        .foregroundColor(.white)
+                                                }
+                                            }
+                                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                                        }
+                                    }
+                                )
                         } else {
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
                                 .fill(Color.appBackgroundSecondary)
@@ -47,25 +64,43 @@ struct AddEntryView: View {
                 // Trackers
                 Section(header: Text("Levels (0-10)").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
                     VStack(alignment: .leading) {
-                        Text("Oil: \(Int(viewModel.oilLevel))")
-                            .font(.appBody)
-                            .foregroundColor(.appTextPrimary)
+                        HStack {
+                            Text("Oil: \(Int(viewModel.oilLevel))")
+                            if viewModel.isAnalyzing { Image(systemName: "sparkles").foregroundColor(.appAccentPrimary).font(.system(size: 10)) }
+                        }
+                        .font(.appBody)
+                        .foregroundColor(.appTextPrimary)
                         Slider(value: $viewModel.oilLevel, in: 0...10, step: 1)
                             .tint(.appWarning)
                     }
                     VStack(alignment: .leading) {
-                        Text("Dryness: \(Int(viewModel.drynessLevel))")
-                            .font(.appBody)
-                            .foregroundColor(.appTextPrimary)
+                        HStack {
+                            Text("Dryness: \(Int(viewModel.drynessLevel))")
+                        }
+                        .font(.appBody)
+                        .foregroundColor(.appTextPrimary)
                         Slider(value: $viewModel.drynessLevel, in: 0...10, step: 1)
                             .tint(.appAccentPrimary)
                     }
                     VStack(alignment: .leading) {
-                        Text("Redness: \(Int(viewModel.rednessLevel))")
-                            .font(.appBody)
-                            .foregroundColor(.appTextPrimary)
+                        HStack {
+                            Text("Redness: \(Int(viewModel.rednessLevel))")
+                            if viewModel.isAnalyzing { Image(systemName: "sparkles").foregroundColor(.appAccentPrimary).font(.system(size: 10)) }
+                        }
+                        .font(.appBody)
+                        .foregroundColor(.appTextPrimary)
                         Slider(value: $viewModel.rednessLevel, in: 0...10, step: 1)
                             .tint(.appError)
+                    }
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text("Texture: \(Int(viewModel.textureLevel))")
+                            if viewModel.isAnalyzing { Image(systemName: "sparkles").foregroundColor(.appAccentPrimary).font(.system(size: 10)) }
+                        }
+                        .font(.appBody)
+                        .foregroundColor(.appTextPrimary)
+                        Slider(value: $viewModel.textureLevel, in: 0...10, step: 1)
+                            .tint(.appAccentSecondary)
                     }
                 }
 

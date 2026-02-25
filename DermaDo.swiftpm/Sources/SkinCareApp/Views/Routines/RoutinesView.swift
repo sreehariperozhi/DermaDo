@@ -22,35 +22,17 @@ struct RoutinesViewContent: View {
                 Color.appBackgroundPrimary.ignoresSafeArea()
 
                 if viewModel.routines.isEmpty {
-                    // Empty State
-                    VStack(spacing: AppSpacing.lg) {
+                    // Minimal Empty State
+                    VStack(spacing: AppSpacing.md) {
                         Image(systemName: "list.bullet.clipboard")
-                            .font(.system(size: 40))
+                            .font(.system(size: 32))
                             .symbolRenderingMode(.hierarchical)
-                            .foregroundColor(.appTextTertiary)
+                            .foregroundColor(.appTextTertiary.opacity(0.6))
 
-                        Text("No Routines Yet")
-                            .font(.appSectionTitle)
-                            .foregroundColor(.appTextPrimary)
-
-                        Text("Create a routine to start tracking your skincare journey.")
+                        Text("Your collection is empty")
                             .font(.appBody)
-                            .foregroundColor(.appTextSecondary)
+                            .foregroundColor(.appTextTertiary)
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal, AppSpacing.xxl)
-
-                        Button(action: { showingAddRoutine = true }) {
-                            Text("Create Routine")
-                                .font(.appLabelLarge)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, AppSpacing.xl)
-                                .padding(.vertical, AppSpacing.sm)
-                                .background(
-                                    RoundedRectangle(cornerRadius: AppSpacing.radiusSmall, style: .continuous)
-                                        .fill(Color.appAccentPrimary)
-                                )
-                        }
-                        .padding(.top, AppSpacing.xs)
                     }
                     .opacity(appeared ? 1 : 0)
                 } else {
@@ -88,7 +70,7 @@ struct RoutinesViewContent: View {
             .onAppear {
                 viewModel.refresh()
                 if !reduceMotion {
-                    withAnimation(.easeInOut(duration: 0.4)) {
+                    withAnimation(DesignMotion.editorialSpring) {
                         appeared = true
                     }
                 } else {
@@ -108,9 +90,22 @@ struct RoutineRow: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(routine.name)
-                    .font(.appHeading3)
-                    .foregroundColor(routine.isEnabled ? .appTextPrimary : .appTextTertiary)
+                HStack(spacing: AppSpacing.sm) {
+                    Text(routine.name)
+                        .font(.appHeading3)
+                        .foregroundColor(routine.isEnabled ? .appTextPrimary : .appTextTertiary)
+                    
+                    if !routine.isEnabled {
+                        Text("PAUSED")
+                            .font(.system(size: 10, weight: .bold))
+                            .tracking(1)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.appTextTertiary.opacity(0.3))
+                            .cornerRadius(4)
+                    }
+                }
 
                 HStack(spacing: AppSpacing.xxs) {
                     Image(systemName: routine.timeOfDay == .morning ? "sun.max" : routine.timeOfDay == .evening ? "moon.stars" : "clock")
@@ -121,8 +116,23 @@ struct RoutineRow: View {
                     Text("\(routine.steps.count) steps")
                         .font(.appBodySmall)
                         .foregroundColor(.appTextSecondary)
+                    
+                    if routine.notifyReminder, let time = routine.reminderTime {
+                        Text("•")
+                            .font(.system(size: 8))
+                            .foregroundColor(.appTextTertiary)
+                        
+                        Image(systemName: "bell.badge")
+                            .font(.system(size: 10))
+                            .foregroundColor(.appAccentPrimary)
+                        
+                        Text(time, style: .time)
+                            .font(.appBodySmall)
+                            .foregroundColor(.appTextSecondary)
+                    }
                 }
             }
+            .opacity(routine.isEnabled ? 1.0 : 0.5)
 
             Spacer()
 

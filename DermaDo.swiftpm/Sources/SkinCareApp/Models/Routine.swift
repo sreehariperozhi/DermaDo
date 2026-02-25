@@ -54,6 +54,7 @@ struct RoutineStep: Codable, Identifiable, Equatable {
     var stepType: StepType
     var instruction: String
     var durationSeconds: Int?
+    var repeatDays: [DayOfWeek]
     let createdAt: Date
     var updatedAt: Date
 
@@ -64,6 +65,7 @@ struct RoutineStep: Codable, Identifiable, Equatable {
         stepType: StepType = .apply,
         instruction: String = "",
         durationSeconds: Int? = nil,
+        repeatDays: [DayOfWeek] = DayOfWeek.allCases,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -73,6 +75,7 @@ struct RoutineStep: Codable, Identifiable, Equatable {
         self.stepType = stepType
         self.instruction = instruction
         self.durationSeconds = durationSeconds
+        self.repeatDays = repeatDays
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }

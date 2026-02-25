@@ -11,6 +11,8 @@ struct AppSettings: Codable, Equatable {
     let notificationsEnabled: Bool
     let morningReminderTime: Date?
     let eveningReminderTime: Date?
+    let voiceTone: VoiceTone
+    let voiceSpeed: Double
     let dataRetentionDays: Int
     let showAchievements: Bool
     let defaultRoutineView: TimeOfDay
@@ -25,6 +27,8 @@ struct AppSettings: Codable, Equatable {
         notificationsEnabled: Bool = true,
         morningReminderTime: Date? = nil,
         eveningReminderTime: Date? = nil,
+        voiceTone: VoiceTone = .neutral,
+        voiceSpeed: Double = 1.0,
         dataRetentionDays: Int = 365,
         showAchievements: Bool = true,
         defaultRoutineView: TimeOfDay = .morning,
@@ -36,6 +40,8 @@ struct AppSettings: Codable, Equatable {
         self.notificationsEnabled = notificationsEnabled
         self.morningReminderTime = morningReminderTime
         self.eveningReminderTime = eveningReminderTime
+        self.voiceTone = voiceTone
+        self.voiceSpeed = voiceSpeed
         self.dataRetentionDays = dataRetentionDays
         self.showAchievements = showAchievements
         self.defaultRoutineView = defaultRoutineView
@@ -51,4 +57,16 @@ enum AppTheme: String, Codable, CaseIterable {
     case light
     case dark
     case system
+}
+
+// MARK: - VoiceTone
+
+enum VoiceTone: String, Codable, CaseIterable {
+    case soft
+    case neutral
+    case energetic
+    
+    var displayName: String {
+        self.rawValue.capitalized
+    }
 }

@@ -15,7 +15,6 @@ final class AppDependencies: ObservableObject {
     let routineManager: RoutineManagerProtocol
     let productManager: ProductManagerProtocol
     let trackerManager: TrackerManagerProtocol
-    let insightManager: InsightManagerProtocol
     let settingsManager: SettingsManagerProtocol
     let progressManager: ProgressManagerProtocol
     
@@ -31,7 +30,7 @@ final class AppDependencies: ObservableObject {
         self.notificationManager = notificationManager
         
         // 3. Independent Domain Managers
-        self.insightManager = InsightManager(dataManager: dataManager)
+        // Removed InsightManager
         
         // 4. Achievement Manager (depends on Data)
         let achievementManager = AchievementManager(dataManager: dataManager)

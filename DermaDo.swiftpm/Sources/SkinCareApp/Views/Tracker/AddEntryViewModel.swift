@@ -13,9 +13,17 @@ class AddEntryViewModel: ObservableObject {
     @Published var oilLevel: Double = 5
     @Published var drynessLevel: Double = 5
     @Published var rednessLevel: Double = 5
+    @Published var textureLevel: Double = 5
     @Published var selectedMood: Mood = .neutral
     @Published var notes: String = ""
-    @Published var capturedImage: UIImage?
+    @Published var capturedImage: UIImage? {
+        didSet {
+            if let image = capturedImage {
+                performAnalysis(image)
+            }
+        }
+    }
+    @Published var isAnalyzing: Bool = false
     
     // MARK: - Init
     init(trackerManager: TrackerManagerProtocol, dataManager: DataManagerProtocol) {
@@ -40,6 +48,23 @@ class AddEntryViewModel: ObservableObject {
         }
     }
     
+    private func performAnalysis(_ image: UIImage) {
+        isAnalyzing = true
+        
+        Task {
+            let result = await SkinAnalysisEngine.analyzeImage(image)
+            
+            await MainActor.run {
+                withAnimation(.spring()) {
+                    self.oilLevel = result.brightness * 10.0
+                    self.rednessLevel = result.redness * 10.0
+                    self.textureLevel = result.texture * 10.0
+                    self.isAnalyzing = false
+                }
+            }
+        }
+    }
+    
     // MARK: - Actions
     
     func save() {
@@ -59,6 +84,7 @@ class AddEntryViewModel: ObservableObject {
             oilLevel: Int(oilLevel),
             drynessLevel: Int(drynessLevel),
             rednessLevel: Int(rednessLevel),
+            textureLevel: Int(textureLevel),
             mood: selectedMood,
             photoFileName: photoFileName,
             notes: notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : notes

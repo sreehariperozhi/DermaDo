@@ -35,6 +35,14 @@ class SettingsViewModel: ObservableObject {
         didSet { updateSettings() }
     }
 
+    @Published var voiceTone: VoiceTone {
+        didSet { updateSettings() }
+    }
+
+    @Published var voiceSpeed: Double {
+        didSet { updateSettings() }
+    }
+
     @Published var exportURL: URL?
     @Published var importError: String?
     @Published var showImportSuccess: Bool = false
@@ -57,6 +65,8 @@ class SettingsViewModel: ObservableObject {
         self.notificationsEnabled = settings.notificationsEnabled
         self.morningReminderTime = settings.morningReminderTime ?? Calendar.current.date(bySettingHour: 8, minute: 0, second: 0, of: Date()) ?? Date()
         self.eveningReminderTime = settings.eveningReminderTime ?? Calendar.current.date(bySettingHour: 20, minute: 0, second: 0, of: Date()) ?? Date()
+        self.voiceTone = settings.voiceTone
+        self.voiceSpeed = settings.voiceSpeed
 
         // Bind to manager updates
         settingsManager.settingsPublisher
@@ -85,6 +95,12 @@ class SettingsViewModel: ObservableObject {
         if let evening = settings.eveningReminderTime, abs(evening.timeIntervalSince(self.eveningReminderTime)) > 1 {
             self.eveningReminderTime = evening
         }
+        if voiceTone != settings.voiceTone {
+            self.voiceTone = settings.voiceTone
+        }
+        if abs(voiceSpeed - settings.voiceSpeed) > 0.01 {
+            self.voiceSpeed = settings.voiceSpeed
+        }
     }
 
     // MARK: - Actions
@@ -102,6 +118,8 @@ class SettingsViewModel: ObservableObject {
             notificationsEnabled: notificationsEnabled,
             morningReminderTime: morningReminderTime,
             eveningReminderTime: eveningReminderTime,
+            voiceTone: voiceTone,
+            voiceSpeed: voiceSpeed,
             dataRetentionDays: currentSettings.dataRetentionDays,
             showAchievements: currentSettings.showAchievements,
             defaultRoutineView: currentSettings.defaultRoutineView,

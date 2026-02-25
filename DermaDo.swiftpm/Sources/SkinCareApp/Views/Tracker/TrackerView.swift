@@ -161,7 +161,7 @@ struct TrackerViewContent: View {
             .onAppear {
                 viewModel.refresh()
                 if !reduceMotion {
-                    withAnimation(.easeInOut(duration: 0.4)) {
+                    withAnimation(DesignMotion.editorialSpring) {
                         appeared = true
                     }
                 } else {

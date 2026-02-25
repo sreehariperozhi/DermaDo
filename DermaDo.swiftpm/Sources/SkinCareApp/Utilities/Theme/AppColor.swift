@@ -13,7 +13,7 @@ enum AppColor {
     /// Light: warm ivory. Dark: deep charcoal (no pure black).
     static let backgroundPrimary = adaptive(
         light: UIColor(red: 0.98, green: 0.97, blue: 0.95, alpha: 1.0),   // #FAF8F2
-        dark:  UIColor(red: 0.10, green: 0.10, blue: 0.11, alpha: 1.0)    // #1A1A1C
+        dark:  UIColor(red: 0.08, green: 0.08, blue: 0.09, alpha: 1.0)    // #141417 (Deepened)
     )
 
     /// Secondary background — elevated surfaces, grouped content areas.
@@ -59,13 +59,13 @@ enum AppColor {
     /// Secondary text — captions, subtitles.
     static let textSecondary = adaptive(
         light: UIColor(red: 0.45, green: 0.43, blue: 0.40, alpha: 1.0),   // #736E66
-        dark:  UIColor(red: 0.65, green: 0.63, blue: 0.60, alpha: 1.0)    // #A6A099
+        dark:  UIColor(red: 0.75, green: 0.73, blue: 0.70, alpha: 1.0)    // #BFBAB3 (Brightened)
     )
 
     /// Tertiary text — placeholders, disabled text.
     static let textTertiary = adaptive(
         light: UIColor(red: 0.62, green: 0.60, blue: 0.57, alpha: 1.0),   // #9E9991
-        dark:  UIColor(red: 0.50, green: 0.48, blue: 0.45, alpha: 1.0)    // #807A73
+        dark:  UIColor(red: 0.58, green: 0.56, blue: 0.53, alpha: 1.0)    // #948F87 (Brightened)
     )
 
     // MARK: - Divider

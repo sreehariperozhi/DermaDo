@@ -5,16 +5,51 @@ struct MainView: View {
     @State private var selectedTab: AppTab = .home
 
     var body: some View {
+    var body: some View {
         TabView(selection: $selectedTab) {
             ForEach(AppTab.allCases) { tab in
                 view(for: tab)
-                    .tabItem {
-                        Label(tab.title, systemImage: tab.icon)
-                    }
                     .tag(tab)
             }
         }
-        .tint(.appAccentPrimary)
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+        .background(Color.appBackgroundPrimary.ignoresSafeArea())
+        .safeAreaInset(edge: .bottom) {
+            customTabBar
+        }
+    }
+
+    private var customTabBar: some View {
+        VStack(spacing: 0) {
+            Divider()
+                .background(Color.appDivider)
+            
+            HStack(spacing: 0) {
+                ForEach(AppTab.allCases) { tab in
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            selectedTab = tab
+                        }
+                    }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: tab.icon)
+                                .font(.system(size: 22, weight: selectedTab == tab ? .semibold : .regular))
+                                .symbolVariant(selectedTab == tab ? .fill : .none)
+                            
+                            Text(tab.title)
+                                .font(.appCaptionText)
+                                .fontWeight(selectedTab == tab ? .medium : .regular)
+                        }
+                        .foregroundColor(selectedTab == tab ? .appAccentPrimary : .appTextSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 10)
+                        .padding(.bottom, 10)
+                        .contentShape(Rectangle())
+                    }
+                }
+            }
+            .background(Color.appCardBackground)
+        }
     }
 
     @ViewBuilder
@@ -24,12 +59,8 @@ struct MainView: View {
             HomeView()
         case .routines:
             RoutinesView()
-        case .products:
-            ProductsView()
         case .tracker:
             TrackerView()
-        case .insights:
-            InsightsView()
         case .settings:
             SettingsView()
         }

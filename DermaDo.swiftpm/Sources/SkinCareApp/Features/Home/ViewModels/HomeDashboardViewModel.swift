@@ -30,6 +30,7 @@ public final class HomeDashboardViewModel: ObservableObject {
     /// Skin tracker glance
     @Published public var lastSkinScore: String = "—"
     @Published public var skinTrend: String = "No data yet"
+    @Published public var scoreHistory: [Double] = []
     
     /// Consistency
     @Published public var streakDays: Int = 0
@@ -99,8 +100,17 @@ public final class HomeDashboardViewModel: ObservableObject {
     // MARK: - Start Routine
     
     public func startNextRoutine() {
+        guard let routine = todayRoutine, routine.isEnabled else { return }
         // Delegation handled by the view via router navigation
         print("[HomeDashboard] Starting routine: \(nextRoutineName)")
+    }
+    
+    public func toggleRoutineEnabled() {
+        guard var routine = todayRoutine else { return }
+        routine.isEnabled.toggle()
+        routine.updatedAt = Date()
+        routineManager.saveRoutine(routine)
+        refresh()
     }
     
     // MARK: - Greeting
@@ -124,9 +134,8 @@ public final class HomeDashboardViewModel: ObservableObject {
         let currentTimeOfDay: TimeOfDay = hour < 14 ? .morning : .evening
         let currentDay = currentDayOfWeek()
         
-        // Filter: enabled + scheduled for today
+        // Filter: scheduled for today (include disabled)
         let routinesForToday = allRoutines
-            .filter { $0.isEnabled }
             .filter { $0.repeatDays.contains(currentDay) }
         
         // Sort: prioritize matching time-of-day (or .both), then by creation date
@@ -173,14 +182,11 @@ public final class HomeDashboardViewModel: ObservableObject {
         }
         
         // Score
-        if let score = latest.overallScore {
-            lastSkinScore = "\(score)"
-        } else {
-            // Compute a synthetic score from the metrics (average of inverses, scaled)
-            let avgIssue = Double(latest.oilLevel + latest.drynessLevel + latest.rednessLevel) / 3.0
-            let syntheticScore = max(0, Int(10.0 - avgIssue))
-            lastSkinScore = "\(syntheticScore)"
-        }
+        lastSkinScore = formatScore(computeScore(for: latest))
+        
+        // History: last 7 entries (reversed for chronological order)
+        let last7 = entries.prefix(7).reversed()
+        scoreHistory = last7.map { computeScore(for: $0) }
         
         // Trend: compare to previous entry
         if entries.count >= 2 {
@@ -192,12 +198,29 @@ public final class HomeDashboardViewModel: ObservableObject {
             if diff > 1.0 {
                 skinTrend = "↑ Improving"
             } else if diff < -1.0 {
-                skinTrend = "↓ Needs attention"
+                skinTrend = "↓ Declining"
             } else {
                 skinTrend = "→ Stable"
             }
         } else {
             skinTrend = "First entry logged"
+        }
+    }
+    
+    private func computeScore(for entry: SkinEntry) -> Double {
+        if let score = entry.overallScore {
+            return Double(score)
+        } else {
+            let avgIssue = Double(entry.oilLevel + entry.drynessLevel + entry.rednessLevel) / 3.0
+            return max(0.0, 10.0 - avgIssue)
+        }
+    }
+    
+    private func formatScore(_ score: Double) -> String {
+        if score == floor(score) {
+            return "\(Int(score))"
+        } else {
+            return String(format: "%.1f", score)
         }
     }
     

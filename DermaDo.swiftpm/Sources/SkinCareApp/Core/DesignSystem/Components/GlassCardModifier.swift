@@ -10,9 +10,10 @@ public struct GlassCardModifier: ViewModifier {
             .padding(DesignSpacing.standard)
             .background(.ultraThinMaterial)
             .clipShape(RoundedRectangle(cornerRadius: DesignRadius.container, style: .continuous))
+            .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
             .overlay(
                 RoundedRectangle(cornerRadius: DesignRadius.container, style: .continuous)
-                    .stroke(DesignShadows.innerGlow, lineWidth: 1)
+                    .stroke(DesignShadows.innerGlow, lineWidth: 0.5)
             )
     }
 }

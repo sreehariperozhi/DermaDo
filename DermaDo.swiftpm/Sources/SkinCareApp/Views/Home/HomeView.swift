@@ -156,7 +156,7 @@ struct HomeViewContent: View {
             .onAppear {
                 viewModel.refresh()
                 if !reduceMotion {
-                    withAnimation(.easeInOut(duration: 0.5)) {
+                    withAnimation(DesignMotion.editorialSpring) {
                         appeared = true
                     }
                 } else {

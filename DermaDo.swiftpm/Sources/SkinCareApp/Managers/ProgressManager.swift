@@ -93,7 +93,7 @@ public final class ProgressManager: ProgressManagerProtocol, ObservableObject {
         
         switch streak {
         case 0:
-            return "Start your skincare journey today ✨"
+            return ""
         case 1:
             return "Great start! Day 1 is the hardest 💪"
         case 2:
