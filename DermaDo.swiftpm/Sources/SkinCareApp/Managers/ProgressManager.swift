@@ -3,6 +3,7 @@ import Combine
 
 /// Manages daily streak tracking, avatar glow/brightness computation,
 /// and encouragement messages. Persists data via `DataManager`.
+@MainActor
 public final class ProgressManager: ProgressManagerProtocol, ObservableObject {
     
     // MARK: - Dependencies

@@ -45,8 +45,6 @@ public struct RoutineSessionView2: View {
                 bottomPanel
             }
         }
-        // Force the dark void aesthetic for the immersive session
-        .colorScheme(.dark)
         // Cleanup when closing
         .onDisappear {
             viewModel.destroy()

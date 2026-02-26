@@ -3,6 +3,7 @@ import Combine
 
 // MARK: - RoutineManagerProtocol
 /// Defines the contract for managing skincare routines.
+@MainActor
 protocol RoutineManagerProtocol: AnyObject {
     var routinesPublisher: AnyPublisher<[Routine], Never> { get }
     

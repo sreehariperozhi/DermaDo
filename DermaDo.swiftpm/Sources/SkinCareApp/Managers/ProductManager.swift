@@ -3,6 +3,7 @@ import Combine
 
 // MARK: - ProductManager
 /// Manages the skincare product catalog using DataManager for persistence.
+@MainActor
 final class ProductManager: ProductManagerProtocol, ObservableObject {
 
     // MARK: - Dependencies

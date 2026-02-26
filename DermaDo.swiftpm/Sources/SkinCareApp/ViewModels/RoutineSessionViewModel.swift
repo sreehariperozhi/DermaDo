@@ -63,29 +63,37 @@ class RoutineSessionViewModel: ObservableObject {
             return
         }
         
-        // Reset timer
-        timeRemaining = TimeInterval(step.durationSeconds ?? 60)
-        isTimerActive = false
-        isPaused = false
+        // Pre-calculate product data outside the async block
+        var product: Product? = nil
+        var productImage: UIImage? = nil
         
-        // Load product details
-        if let productId = step.productId, let product = productManager.fetchProduct(byId: productId) {
-            self.currentProduct = product
-            if let fileName = product.imageFileName,
-               let data = productManager.fetchProductImage(named: fileName),
-               let image = UIImage(data: data) {
-                self.currentProductImage = image
-            } else {
-                self.currentProductImage = nil
+        if let productId = step.productId {
+            product = productManager.fetchProduct(byId: productId)
+            if let fileName = product?.imageFileName,
+               let data = productManager.fetchProductImage(named: fileName) {
+                productImage = UIImage(data: data)
             }
-        } else {
-            self.currentProduct = nil
-            self.currentProductImage = nil
         }
         
-        // Update Active Session state for the Avatar
-        activeSession?.currentStep = RoutineStepType.mapStepType(step.stepType)
-        activeSession?.progressPercentage = self.progress
+        // All state updates should happen on the main queue, deferred if called from init
+        let stepTypeMapping = RoutineStepType.mapStepType(step.stepType)
+        let prog = self.progress
+        let duration = TimeInterval(step.durationSeconds ?? 60)
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Internal state
+            self.timeRemaining = duration
+            self.isTimerActive = false
+            self.isPaused = false
+            self.currentProduct = product
+            self.currentProductImage = productImage
+            
+            // External state (Avatar)
+            self.activeSession?.currentStep = stepTypeMapping
+            self.activeSession?.progressPercentage = prog
+        }
     }
     
     func nextStep() {
@@ -133,9 +141,11 @@ class RoutineSessionViewModel: ObservableObject {
         // Link routine to today's skin entry in TrackerManager
         linkRoutineToToday()
         
-        withAnimation(DesignMotion.heroMaterialize) {
-            activeSession?.currentStep = .none
-            activeSession?.progressPercentage = 1.0
+        DispatchQueue.main.async { [weak self] in
+            withAnimation(DesignMotion.heroMaterialize) {
+                self?.activeSession?.currentStep = .none
+                self?.activeSession?.progressPercentage = 1.0
+            }
         }
     }
     

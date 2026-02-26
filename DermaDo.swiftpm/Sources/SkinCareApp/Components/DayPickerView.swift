@@ -4,7 +4,7 @@ struct DayPickerView: View {
     @Binding var selectedDays: Set<DayOfWeek>
 
     var body: some View {
-        HStack(spacing: AppSpacing.xs) {
+        HStack(spacing: DesignSpacing.small) {
             ForEach(DayOfWeek.allCases, id: \.self) { day in
                 DayButton(day: day, isSelected: selectedDays.contains(day)) {
                     toggle(day)
@@ -32,16 +32,21 @@ private struct DayButton: View {
     var body: some View {
         Button(action: action) {
             Text(abbreviation(for: day))
-                .font(.appLabelMedium)
-                .foregroundColor(isSelected ? .white : .appTextSecondary)
-                .frame(width: 38, height: 38)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(isSelected ? DesignColors.voidObsidian : DesignColors.luminousPearl)
+                .frame(width: 40, height: 40)
                 .background(
                     Circle()
-                        .fill(isSelected ? Color.appAccentPrimary : Color.appCardBackground)
+                        .fill(isSelected ? DesignColors.roseGold : DesignColors.voidAsh.opacity(0.3))
+                        .overlay(
+                            Circle()
+                                .stroke(DesignShadows.innerGlow, lineWidth: 1)
+                                .opacity(isSelected ? 0.3 : 0.1)
+                        )
                 )
         }
         .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.2), value: isSelected)
+        .animation(DesignMotion.editorialSpring, value: isSelected)
     }
 
     private func abbreviation(for day: DayOfWeek) -> String {

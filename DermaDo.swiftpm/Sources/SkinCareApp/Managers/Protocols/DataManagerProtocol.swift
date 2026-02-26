@@ -33,6 +33,7 @@ import Combine
 // MARK: - DataManagerProtocol
 /// Defines the contract for generic local data persistence.
 /// Supports the offline-first architecture by abstracting storage operations.
+@MainActor
 protocol DataManagerProtocol: AnyObject {
     
     /// Emits the key of the data that changed.

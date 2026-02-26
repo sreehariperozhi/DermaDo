@@ -31,7 +31,7 @@ public final class VoiceManager: NSObject, ObservableObject, AVSpeechSynthesizer
         // Use a high-quality, friendly English voice if available
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
         utterance.rate = 0.4 // Slower, more premium pace
-        utterance.pitchMultiplier = 0.9 // Calmer, slightly deeper tone
+        utterance.pitchMultiplier = 0.85 // Calmer, slightly deeper tone
         
         if synthesizer.isSpeaking {
             synthesizer.stopSpeaking(at: .immediate)

@@ -1,6 +1,7 @@
 import Foundation
 
 /// Manages gamification logic and persistence.
+@MainActor
 protocol AchievementManagerProtocol: AnyObject {
     
     /// Returns the current list of achievements.

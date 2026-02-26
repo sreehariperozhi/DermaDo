@@ -4,6 +4,7 @@ import Combine
 // MARK: - RoutinesViewModel
 /// ViewModel for the routine list screen.
 /// Manages fetching, toggling, and deleting routines.
+@MainActor
 class RoutinesViewModel: ObservableObject {
 
     // MARK: - Dependencies

@@ -13,129 +13,6 @@ struct AddEntryView: View {
 
     var body: some View {
         NavigationView {
-<<<<<<< HEAD
-            Form {
-                // Photo Section
-                Section(header: Text("Photo").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                    ZStack {
-                        if let image = viewModel.capturedImage {
-                            Image(uiImage: image)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(height: 200)
-                                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                                .overlay(
-                                    Group {
-                                        if viewModel.isAnalyzing {
-                                            ZStack {
-                                                Color.black.opacity(0.4)
-                                                VStack(spacing: 8) {
-                                                    ProgressView()
-                                                        .tint(.white)
-                                                    Text("Analyzing Skin...")
-                                                        .font(.appCaptionText)
-                                                        .foregroundColor(.white)
-                                                }
-                                            }
-                                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                                        }
-                                    }
-                                )
-                        } else {
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(Color.appBackgroundSecondary)
-                                .frame(height: 200)
-
-                            VStack(spacing: 8) {
-                                Image(systemName: "camera")
-                                    .font(.system(size: 28))
-                                    .symbolRenderingMode(.hierarchical)
-                                    .foregroundColor(.appTextTertiary)
-                                Text("Tap to add photo")
-                                    .font(.appBody)
-                                    .foregroundColor(.appTextTertiary)
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .onTapGesture {
-                        showingSourceDialog = true
-                    }
-                }
-
-                // Trackers
-                Section(header: Text("Levels (0-10)").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Text("Oil: \(Int(viewModel.oilLevel))")
-                            if viewModel.isAnalyzing { Image(systemName: "sparkles").foregroundColor(.appAccentPrimary).font(.system(size: 10)) }
-                        }
-                        .font(.appBody)
-                        .foregroundColor(.appTextPrimary)
-                        Slider(value: $viewModel.oilLevel, in: 0...10, step: 1)
-                            .tint(.appWarning)
-                    }
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Text("Dryness: \(Int(viewModel.drynessLevel))")
-                        }
-                        .font(.appBody)
-                        .foregroundColor(.appTextPrimary)
-                        Slider(value: $viewModel.drynessLevel, in: 0...10, step: 1)
-                            .tint(.appAccentPrimary)
-                    }
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Text("Redness: \(Int(viewModel.rednessLevel))")
-                            if viewModel.isAnalyzing { Image(systemName: "sparkles").foregroundColor(.appAccentPrimary).font(.system(size: 10)) }
-                        }
-                        .font(.appBody)
-                        .foregroundColor(.appTextPrimary)
-                        Slider(value: $viewModel.rednessLevel, in: 0...10, step: 1)
-                            .tint(.appError)
-                    }
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Text("Texture: \(Int(viewModel.textureLevel))")
-                            if viewModel.isAnalyzing { Image(systemName: "sparkles").foregroundColor(.appAccentPrimary).font(.system(size: 10)) }
-                        }
-                        .font(.appBody)
-                        .foregroundColor(.appTextPrimary)
-                        Slider(value: $viewModel.textureLevel, in: 0...10, step: 1)
-                            .tint(.appAccentSecondary)
-                    }
-                }
-
-                Section(header: Text("Acne Count").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                    Stepper("Count: \(viewModel.acneCount)", value: $viewModel.acneCount, in: 0...50)
-                        .font(.appBody)
-                }
-
-                // Mood — SF Symbols instead of emojis
-                Section(header: Text("Mood").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: AppSpacing.sm) {
-                            ForEach(Mood.allCases, id: \.self) { mood in
-                                Button(action: {
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        viewModel.selectedMood = mood
-                                    }
-                                }) {
-                                    VStack(spacing: 4) {
-                                        Image(systemName: mood.sfSymbol)
-                                            .font(.system(size: 24))
-                                            .symbolRenderingMode(.hierarchical)
-                                            .foregroundColor(viewModel.selectedMood == mood ? .appAccentPrimary : .appTextTertiary)
-
-                                        Text(mood.displayName)
-                                            .font(.system(size: 10, weight: .medium))
-                                            .foregroundColor(viewModel.selectedMood == mood ? .appAccentPrimary : .appTextTertiary)
-                                    }
-                                    .padding(AppSpacing.xs)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: AppSpacing.radiusSmall, style: .continuous)
-                                            .fill(viewModel.selectedMood == mood ? Color.appAccentSubtle : Color.clear)
-=======
             ZStack {
                 // MARK: - Background
                 DesignColors.voidObsidian.ignoresSafeArea()
@@ -160,7 +37,39 @@ struct AddEntryView: View {
                                     .overlay(
                                         RoundedRectangle(cornerRadius: DesignRadius.container, style: .continuous)
                                             .stroke(DesignShadows.innerGlow, lineWidth: 1)
->>>>>>> mac-ui-major-backup
+                                    )
+                                    .overlay(
+                                        Group {
+                                            if viewModel.isAnalyzing {
+                                                ZStack {
+                                                    Color.black.opacity(0.4)
+                                                    VStack(spacing: 8) {
+                                                        ProgressView()
+                                                            .tint(.white)
+                                                        Text("Analyzing Skin...")
+                                                            .font(DesignTypography.captionUI)
+                                                            .foregroundColor(.white)
+                                                    }
+                                                }
+                                                .clipShape(RoundedRectangle(cornerRadius: DesignRadius.container, style: .continuous))
+                                            }
+                                            
+                                            if viewModel.showFaceOverlay, let rect = viewModel.faceRect {
+                                                GeometryReader { geo in
+                                                    let width = rect.width * geo.size.width
+                                                    let height = rect.height * geo.size.height
+                                                    let x = rect.origin.x * geo.size.width
+                                                    let y = (1.0 - rect.origin.y - rect.height) * geo.size.height
+                                                    
+                                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                                        .stroke(DesignColors.roseGold, lineWidth: 2)
+                                                        .background(DesignColors.roseGold.opacity(0.1))
+                                                        .frame(width: width, height: height)
+                                                        .offset(x: x, y: y)
+                                                        .transition(.opacity.combined(with: .scale))
+                                                }
+                                            }
+                                        }
                                     )
                             } else {
                                 RoundedRectangle(cornerRadius: DesignRadius.container, style: .continuous)
@@ -194,6 +103,7 @@ struct AddEntryView: View {
                             levelSlider(title: "Oil Level", value: $viewModel.oilLevel, color: DesignColors.ceruleanHydration)
                             levelSlider(title: "Dryness Level", value: $viewModel.drynessLevel, color: DesignColors.roseGold)
                             levelSlider(title: "Redness Level", value: $viewModel.rednessLevel, color: DesignColors.velvetCrimson)
+                            levelSlider(title: "Texture Level", value: $viewModel.textureLevel, color: DesignColors.sageBotanical)
                         }
                         .padding(.vertical, DesignSpacing.small)
                     }
@@ -248,7 +158,6 @@ struct AddEntryView: View {
                 }
                 .scrollContentBackground(.hidden)
             }
-            .colorScheme(.dark)
             .navigationTitle("New Log")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -281,6 +190,16 @@ struct AddEntryView: View {
             }
             .sheet(isPresented: $showingCamera) {
                 ImagePickerCompat(image: $viewModel.capturedImage, sourceType: selectedSourceType)
+            }
+            .alert("No Face Detected", isPresented: $viewModel.showNoFaceAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("No face detected. Please capture a clear face image.")
+            }
+            .alert("Multiple Faces Detected", isPresented: $viewModel.showMultipleFacesAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Multiple faces detected. Please capture only your face for accurate analysis.")
             }
         }
     }

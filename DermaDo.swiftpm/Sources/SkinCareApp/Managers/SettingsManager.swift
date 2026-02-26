@@ -3,6 +3,7 @@ import Combine
 
 // MARK: - SettingsManager
 /// Manages app settings using DataManager for persistence.
+@MainActor
 final class SettingsManager: SettingsManagerProtocol, ObservableObject {
 
     // MARK: - Dependencies
@@ -75,16 +76,13 @@ final class SettingsManager: SettingsManagerProtocol, ObservableObject {
         // Persist
         try? dataManager.save(newSettings, forKey: DataManager.StorageKey.settings)
         
-        // Handle Streak Warning (Off Main Thread)
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            guard let self = self else { return }
-            if newSettings.notificationsEnabled {
-                let time = newSettings.eveningReminderTime ?? Calendar.current.date(bySettingHour: 20, minute: 0, second: 0, of: Date()) ?? Date()
-                self.notificationManager.scheduleStreakWarning(at: time)
-            } else {
-                self.notificationManager.cancelStreakWarning()
-                self.notificationManager.removeAllPendingNotifications()
-            }
+        // Handle Streak Warning
+        if newSettings.notificationsEnabled {
+            let time = newSettings.eveningReminderTime ?? Calendar.current.date(bySettingHour: 20, minute: 0, second: 0, of: Date()) ?? Date()
+            notificationManager.scheduleStreakWarning(at: time)
+        } else {
+            notificationManager.cancelStreakWarning()
+            notificationManager.removeAllPendingNotifications()
         }
     }
 

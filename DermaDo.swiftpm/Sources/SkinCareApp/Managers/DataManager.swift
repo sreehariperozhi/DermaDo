@@ -26,6 +26,7 @@ import Combine
 // MARK: - DataManager
 /// Production implementation of `DataManagerProtocol`.
 /// ... (docs) ...
+@MainActor
 final class DataManager: DataManagerProtocol, ObservableObject {
     
     // MARK: - Observability

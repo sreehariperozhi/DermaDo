@@ -3,6 +3,7 @@ import Combine
 
 // MARK: - TrackerManager
 /// Manages skin tracking entries using DataManager for persistence.
+@MainActor
 final class TrackerManager: TrackerManagerProtocol, ObservableObject {
 
     // MARK: - Dependencies

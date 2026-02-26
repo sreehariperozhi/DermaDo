@@ -2,6 +2,7 @@ import Foundation
 
 // MARK: - AchievementManager
 /// Handles achievement tracking, evaluation, and persistence.
+@MainActor
 final class AchievementManager: AchievementManagerProtocol {
     
     // MARK: - Dependencies

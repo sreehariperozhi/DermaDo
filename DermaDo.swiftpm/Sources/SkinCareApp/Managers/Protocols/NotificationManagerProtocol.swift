@@ -3,13 +3,14 @@ import UserNotifications
 
 // MARK: - NotificationManagerProtocol
 /// Manages scheduling and cancelling of local notifications.
+@MainActor
 protocol NotificationManagerProtocol: AnyObject {
     
     /// Request user permission for notifications.
-    func requestAuthorization(completion: @escaping (Bool) -> Void)
+    func requestAuthorization(completion: @escaping @Sendable (Bool) -> Void)
     
     /// Check current permission status.
-    func checkAuthorization(completion: @escaping (Bool) -> Void)
+    func checkAuthorization(completion: @escaping @Sendable (Bool) -> Void)
     
     /// Current authorization status
     var permissionStatus: UNAuthorizationStatus { get }

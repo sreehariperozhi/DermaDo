@@ -3,6 +3,7 @@ import Combine
 
 // MARK: - RoutineManager
 /// Manages skincare routines using DataManager for persistence.
+@MainActor
 final class RoutineManager: RoutineManagerProtocol, ObservableObject {
 
     // MARK: - Dependencies

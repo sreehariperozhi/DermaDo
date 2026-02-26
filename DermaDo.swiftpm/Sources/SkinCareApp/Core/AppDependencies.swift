@@ -1,6 +1,7 @@
 import Foundation
 
 /// Container for all long-lived app dependencies.
+@MainActor
 final class AppDependencies: ObservableObject {
     
     // MARK: - Core Managers

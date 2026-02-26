@@ -4,6 +4,7 @@ import Combine
 // MARK: - RoutineDetailViewModel
 /// ViewModel for the add / edit routine form.
 /// Holds mutable draft state and validates before saving.
+@MainActor
 class RoutineDetailViewModel: ObservableObject {
 
     // MARK: - Dependencies
@@ -154,6 +155,17 @@ class RoutineDetailViewModel: ObservableObject {
             return
         }
         
+        // Handle notification permissions if reminders are enabled
+        if notifyReminder {
+            Task {
+                let center = UNUserNotificationCenter.current()
+                let settings = await center.notificationSettings()
+                if settings.authorizationStatus == .notDetermined {
+                    _ = try? await center.requestAuthorization(options: [.alert, .sound, .badge])
+                }
+            }
+        }
+
         // Validate layer order
         let result = validate()
         if !result.isValid && !showValidationAlert { 

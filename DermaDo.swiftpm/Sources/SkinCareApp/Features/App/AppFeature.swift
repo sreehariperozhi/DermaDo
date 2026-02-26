@@ -5,6 +5,5 @@ public enum AppFeature: Hashable {
     case home
     case routine
     case tracker
-    case avatar
     case settings
 }

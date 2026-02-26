@@ -3,6 +3,7 @@ import UIKit
 
 // MARK: - NotificationManager
 /// Concrete implementation of NotificationManagerProtocol using UNUserNotificationCenter.
+@MainActor
 final class NotificationManager: NSObject, NotificationManagerProtocol, ObservableObject {
     
     // MARK: - Properties
@@ -19,7 +20,7 @@ final class NotificationManager: NSObject, NotificationManagerProtocol, Observab
     
     // MARK: - Authorization
     
-    func requestAuthorization(completion: @escaping (Bool) -> Void) {
+    func requestAuthorization(completion: @escaping @Sendable (Bool) -> Void) {
         center.requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, error in
             if let error = error {
                 print("Notification permission error: \(error.localizedDescription)")
@@ -31,7 +32,7 @@ final class NotificationManager: NSObject, NotificationManagerProtocol, Observab
         }
     }
     
-    func checkAuthorization(completion: @escaping (Bool) -> Void) {
+    func checkAuthorization(completion: @escaping @Sendable (Bool) -> Void) {
         center.getNotificationSettings { [weak self] settings in
             let status = settings.authorizationStatus
             DispatchQueue.main.async {
@@ -176,7 +177,7 @@ final class NotificationManager: NSObject, NotificationManagerProtocol, Observab
 
 // MARK: - UNUserNotificationCenterDelegate
 extension NotificationManager: UNUserNotificationCenterDelegate {
-    func userNotificationCenter(
+    nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void

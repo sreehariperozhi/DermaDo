@@ -4,20 +4,15 @@ struct RoutineDetailView: View {
     @StateObject var viewModel: RoutineDetailViewModel
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var dependencies: AppDependencies
+    @EnvironmentObject var activeSession: ActiveRoutineSession
+    @EnvironmentObject var voiceManager: VoiceManager
 
     @State private var showingStepPicker = false
     @State private var showingLayerWarning = false
     @State private var stepToEdit: RoutineStep?
+    @State private var showingRoutineSession = false
 
     var body: some View {
-<<<<<<< HEAD
-        ZStack {
-            NavigationView {
-                Form {
-                    Section(header: Text("Details").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                        TextField("Routine Name", text: $viewModel.name)
-
-=======
         NavigationView {
             ZStack {
                 // Void background
@@ -30,7 +25,6 @@ struct RoutineDetailView: View {
                             .font(DesignTypography.bodyUI)
                             .foregroundColor(DesignColors.luminousPearl)
 
->>>>>>> mac-ui-major-backup
                         Picker("Time of Day", selection: $viewModel.timeOfDay) {
                             Label("Morning", systemImage: "sun.max").tag(TimeOfDay.morning)
                             Label("Evening", systemImage: "moon.stars").tag(TimeOfDay.evening)
@@ -39,96 +33,22 @@ struct RoutineDetailView: View {
                         .pickerStyle(SegmentedPickerStyle())
 
                         Toggle("Enabled", isOn: $viewModel.isEnabled)
-<<<<<<< HEAD
-                            .tint(.appAccentPrimary)
-                    }
-
-                    Section(header: Text("Routine Time").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                        DatePicker("Reminder Time", selection: $viewModel.reminderTime, displayedComponents: .hourAndMinute)
-                            .datePickerStyle(.compact)
-                        
-                        Toggle("Reminders", isOn: $viewModel.notifyReminder)
-                            .tint(.appAccentPrimary)
-                    }
-
-                    Section(header: Text("Repeat Days").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                        DayPickerView(selectedDays: $viewModel.repeatDays)
-                            .frame(height: 60)
-                    }
-
-                    Section(header: Text("Steps").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
-                        ForEach(Array(viewModel.steps.enumerated()), id: \.element.id) { index, step in
-                            Button(action: {
-                                stepToEdit = step
-                            }) {
-                                HStack {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color.appAccentSubtle)
-                                            .frame(width: 26, height: 26)
-
-                                        Text("\(index + 1)")
-                                            .font(.appNumericSmall)
-                                            .foregroundColor(.appAccentPrimary)
-                                    }
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(step.instruction)
-                                            .font(.appBody)
-                                            .foregroundColor(.appTextPrimary)
-
-                                        if let productId = step.productId,
-                                           let product = dependencies.productManager.fetchProduct(byId: productId) {
-                                            HStack(spacing: 4) {
-                                                Image(systemName: product.category.icon)
-                                                    .font(.system(size: 10))
-                                                    .symbolRenderingMode(.hierarchical)
-                                                Text(product.name)
-                                                    .font(.system(size: 12, weight: .medium))
-                                            }
-                                            .foregroundColor(.appAccentPrimary)
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(Color.appAccentSubtle)
-                                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                                        }
-
-                                        if step.repeatDays.count < 7 {
-                                            Text(formattedDays(step.repeatDays))
-                                                .font(.system(size: 10, weight: .medium))
-                                                .foregroundColor(.appTextTertiary)
-                                                .padding(.top, 2)
-                                        }
-                                    }
-
-                                    Spacer()
-
-                                    if let duration = step.durationSeconds {
-                                        Text("\(duration)s")
-                                            .font(.appCaptionText)
-                                            .foregroundColor(.appTextSecondary)
-                                    }
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 12, weight: .semibold))
-                                        .foregroundColor(.appTextTertiary)
-                                        .padding(.leading, 4)
-                                }
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        .onDelete(perform: viewModel.removeStep)
-                        .onMove(perform: viewModel.moveStep)
-
-                        Button(action: { showingStepPicker = true }) {
-                            Label("Add Step", systemImage: "plus.circle")
-                                .foregroundColor(.appAccentPrimary)
-                        }
-=======
                             .tint(DesignColors.roseGold)
                             .foregroundColor(DesignColors.luminousPearl)
->>>>>>> mac-ui-major-backup
+                    }
+                    .listRowBackground(Color.white.opacity(0.05))
+
+                    // MARK: - Routine Time Section
+                    Section(header: sectionHeader("Routine Time")) {
+                        Toggle("Reminders", isOn: $viewModel.notifyReminder)
+                            .tint(DesignColors.roseGold)
+                            .foregroundColor(DesignColors.luminousPearl)
+                        
+                        if viewModel.notifyReminder {
+                            DatePicker("Trigger At", selection: $viewModel.reminderTime, displayedComponents: .hourAndMinute)
+                                .font(DesignTypography.bodyUI)
+                                .foregroundColor(DesignColors.luminousPearl)
+                        }
                     }
                     .listRowBackground(Color.white.opacity(0.05))
 
@@ -157,24 +77,38 @@ struct RoutineDetailView: View {
                                             .foregroundColor(DesignColors.roseGold)
                                     }
 
-                                    VStack(alignment: .leading, spacing: 2) {
+                                    VStack(alignment: .leading, spacing: 4) {
                                         Text(step.instruction.isEmpty ? step.stepType.rawValue.capitalized : step.instruction)
                                             .font(DesignTypography.bodyUI)
                                             .foregroundColor(DesignColors.luminousPearl)
 
-                                        if let productId = step.productId,
-                                           let product = dependencies.productManager.fetchProduct(byId: productId) {
-                                            HStack(spacing: 4) {
-                                                Image(systemName: product.category.icon)
-                                                    .font(.system(size: 10))
-                                                Text(product.name)
-                                                    .font(.system(size: 12, weight: .medium))
+                                        HStack(spacing: DesignSpacing.small) {
+                                            if let productId = step.productId,
+                                               let product = dependencies.productManager.fetchProduct(byId: productId) {
+                                                HStack(spacing: 4) {
+                                                    Image(systemName: product.category.icon)
+                                                        .font(.system(size: 10))
+                                                    Text(product.name)
+                                                        .font(.system(size: 10, weight: .medium))
+                                                }
+                                                .foregroundColor(DesignColors.roseGold)
+                                                .padding(.horizontal, 6)
+                                                .padding(.vertical, 2)
+                                                .background(DesignColors.roseGold.opacity(0.1))
+                                                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
                                             }
-                                            .foregroundColor(DesignColors.roseGold)
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(DesignColors.roseGold.opacity(0.1))
-                                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                            
+                                            // Repeat Days Label
+                                            if step.repeatDays.count < 7 && !step.repeatDays.isEmpty {
+                                                Text(formattedDays(step.repeatDays))
+                                                    .font(DesignTypography.microUI)
+                                                    .captionTracking()
+                                                    .foregroundColor(DesignColors.liquidSilver.opacity(0.6))
+                                                    .padding(.horizontal, 6)
+                                                    .padding(.vertical, 2)
+                                                    .background(DesignColors.voidAsh.opacity(0.3))
+                                                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                            }
                                         }
                                     }
 
@@ -208,10 +142,39 @@ struct RoutineDetailView: View {
                         }
                     }
                     .listRowBackground(Color.white.opacity(0.05))
+
+                    // MARK: - Start Routine (Edit mode only)
+                    if case .edit(_) = viewModel.mode {
+                        Section {
+                            Button(action: {
+                                showingRoutineSession = true
+                            }) {
+                                HStack {
+                                    Spacer()
+                                    if viewModel.isEnabled {
+                                        Image(systemName: "play.fill")
+                                        Text("Start Routine")
+                                            .fontWeight(.semibold)
+                                    } else {
+                                        Image(systemName: "pause.circle")
+                                        Text("Routine is paused")
+                                    }
+                                    Spacer()
+                                }
+                                .font(DesignTypography.bodyStrongUI)
+                                .foregroundColor(viewModel.isEnabled ? DesignColors.voidObsidian : DesignColors.liquidSilver)
+                                .padding(.vertical, DesignSpacing.standard)
+                            }
+                            .disabled(!viewModel.isEnabled)
+                            .listRowBackground(
+                                viewModel.isEnabled
+                                    ? DesignColors.luminousPearl
+                                    : DesignColors.voidAsh.opacity(0.5)
+                            )
+                        }
+                    }
                 }
                 .scrollContentBackground(.hidden)
-<<<<<<< HEAD
-                .background(Color.appBackgroundPrimary.ignoresSafeArea())
                 .navigationTitle(viewModel.modeTitle)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -219,21 +182,8 @@ struct RoutineDetailView: View {
                         Button("Cancel") {
                             presentationMode.wrappedValue.dismiss()
                         }
-                        .foregroundColor(.appAccentPrimary)
+                        .foregroundColor(DesignColors.liquidSilver)
                     }
-=======
-            }
-            .colorScheme(.dark)
-            .navigationTitle(viewModel.modeTitle)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                    .foregroundColor(DesignColors.liquidSilver)
-                }
->>>>>>> mac-ui-major-backup
 
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Save") {
@@ -244,7 +194,8 @@ struct RoutineDetailView: View {
                                 viewModel.save()
                             }
                         }
-                        .foregroundColor(.appAccentPrimary)
+                        .foregroundColor(DesignColors.roseGold)
+                        .fontWeight(.semibold)
                     }
                 }
                 .confirmationDialog("Choose a step type", isPresented: $showingStepPicker, titleVisibility: .visible) {
@@ -285,42 +236,57 @@ struct RoutineDetailView: View {
                     if shouldDismiss {
                         presentationMode.wrappedValue.dismiss()
                     }
-<<<<<<< HEAD
-=======
-                    .foregroundColor(DesignColors.roseGold)
-                    .fontWeight(.semibold)
->>>>>>> mac-ui-major-backup
                 }
-            }
-            
-            // Toast Overlay
-            if let message = viewModel.orderViolationMessage {
-                VStack {
-                    Spacer()
-                    HStack(spacing: 12) {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundColor(.appAccentPrimary)
-                        Text(message)
-                            .font(.appBodySmall)
-                            .foregroundColor(.appTextPrimary)
+                .fullScreenCover(isPresented: $showingRoutineSession) {
+                    if case .edit(let routine) = viewModel.mode {
+                        RoutineSessionView2(
+                            routine: routine,
+                            productManager: dependencies.productManager,
+                            progressManager: dependencies.progressManager,
+                            trackerManager: dependencies.trackerManager,
+                            activeSession: activeSession,
+                            voiceManager: voiceManager
+                        )
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        Capsule()
-                            .fill(.ultraThinMaterial)
-                            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
-                    )
-                    .padding(.bottom, 40)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .zIndex(1)
                 }
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.orderViolationMessage)
+
+                // Toast Overlay
+                if let message = viewModel.orderViolationMessage {
+                    VStack {
+                        Spacer()
+                        HStack(spacing: 12) {
+                            Image(systemName: "info.circle.fill")
+                                .foregroundColor(DesignColors.roseGold)
+                            Text(message)
+                                .font(DesignTypography.captionUI)
+                                .foregroundColor(DesignColors.luminousPearl)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(
+                            Capsule()
+                                .fill(DesignColors.voidAsh.opacity(0.9))
+                                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                        )
+                        .padding(.bottom, 40)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .zIndex(1)
+                    }
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.orderViolationMessage)
+                }
             }
         }
     }
 
-<<<<<<< HEAD
+    // MARK: - Helpers
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(DesignTypography.captionUI)
+            .captionTracking()
+            .foregroundColor(DesignColors.liquidSilver)
+    }
+
     private func formattedDays(_ days: [DayOfWeek]) -> String {
         if days.count == 7 { return "Daily" }
         if days.isEmpty { return "Never" }
@@ -340,15 +306,6 @@ struct RoutineDetailView: View {
             case .sunday: return "Sun"
             }
         }.joined(separator: ", ")
-=======
-    // MARK: - Helpers
-
-    private func sectionHeader(_ title: String) -> some View {
-        Text(title.uppercased())
-            .font(DesignTypography.captionUI)
-            .captionTracking()
-            .foregroundColor(DesignColors.liquidSilver)
->>>>>>> mac-ui-major-backup
     }
 }
 

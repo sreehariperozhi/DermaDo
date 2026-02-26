@@ -19,29 +19,27 @@ public struct AppMainView: View {
             DesignColors.voidObsidian
                 .ignoresSafeArea()
             
-            // The Router Switch: Swaps active views based on AppFeature state
-            switch router.currentFeature {
-            case .home:
+            // The TabView: Enables horizontal swipe navigation between feature modules
+            TabView(selection: $router.currentFeature) {
                 HomeDashboardView(viewModel: HomeDashboardViewModel(
                     routineManager: dependencies.routineManager,
                     trackerManager: dependencies.trackerManager,
                     settingsManager: dependencies.settingsManager,
                     progressManager: dependencies.progressManager
                 ))
-                    .transition(DesignMotion.editorialReveal)
-            case .routine:
+                .tag(AppFeature.home)
+                
                 RoutinesView()
-                    .transition(DesignMotion.editorialReveal)
-            case .tracker:
+                    .tag(AppFeature.routine)
+                
                 TrackerView()
-                    .transition(DesignMotion.editorialReveal)
-            case .avatar:
-                AvatarPlaygroundView(activeSession: activeSession, voiceManager: voiceManager)
-                    .transition(DesignMotion.editorialReveal)
-            case .settings:
-                SettingsPlaygroundView()
-                    .transition(DesignMotion.editorialReveal)
+                    .tag(AppFeature.tracker)
+                
+                SettingsView()
+                    .tag(AppFeature.settings)
             }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .ignoresSafeArea()
             
             // Custom Luxury Navigation Bar sits visually over the void
             VStack {
@@ -49,7 +47,6 @@ public struct AppMainView: View {
                 AppNavigationBar()
             }
         }
-        .colorScheme(.dark) // Force dark mode first on 2.0 shell
         .onAppear {
             if !hasCompletedOnboarding {
                 showOnboarding = true
@@ -91,7 +88,6 @@ struct AppNavigationBar: View {
             navButton(for: .home, iconSystemName: "rectangle.3.group")
             navButton(for: .routine, iconSystemName: "list.clipboard")
             navButton(for: .tracker, iconSystemName: "face.dashed")
-            navButton(for: .avatar, iconSystemName: "sparkles")
             navButton(for: .settings, iconSystemName: "slider.horizontal.3")
         }
         .padding(.horizontal, DesignSpacing.large)

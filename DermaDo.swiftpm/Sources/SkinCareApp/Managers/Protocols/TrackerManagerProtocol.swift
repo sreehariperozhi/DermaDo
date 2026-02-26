@@ -3,6 +3,7 @@ import Combine
 
 // MARK: - TrackerManagerProtocol
 /// Defines the contract for managing skin tracking log entries.
+@MainActor
 protocol TrackerManagerProtocol: AnyObject {
     var entriesPublisher: AnyPublisher<[SkinEntry], Never> { get }
     var onEntriesChanged: (([SkinEntry]) -> Void)? { get set }

@@ -119,13 +119,13 @@ public struct HomeDashboardView: View {
                         
                         if !isEnabled {
                             Text("PAUSED")
-                                .font(.system(size: 10, weight: .bold))
-                                .tracking(1)
-                                .foregroundColor(.white)
+                                .font(DesignTypography.microUI)
+                                .captionTracking()
+                                .foregroundColor(DesignColors.roseGold)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(DesignColors.velvetCrimson.opacity(0.6))
-                                .cornerRadius(4)
+                                .background(DesignColors.roseGold.opacity(0.15))
+                                .clipShape(Capsule())
                         }
                     }
                     
@@ -184,13 +184,6 @@ public struct HomeDashboardView: View {
                         .font(DesignTypography.titleUI)
                         .foregroundColor(DesignColors.luminousPearl)
                     
-                    Text("Create one to get started with your skincare journey.")
-                        .font(DesignTypography.bodyUI)
-                        .foregroundColor(DesignColors.liquidSilver)
-                        .multilineTextAlignment(.center)
-                    
-                    Spacer().frame(height: DesignSpacing.small)
-                    
                     Button(action: {
                         showingAddRoutine = true
                     }) {
@@ -207,6 +200,9 @@ public struct HomeDashboardView: View {
     
     // MARK: - Section 3: Skin Tracker Glance
     
+    /// Shared height for dashboard metric cards
+    private let dashboardCardHeight: CGFloat = 170
+    
     private var skinTrackerGlance: some View {
         HStack(spacing: DesignSpacing.standard) {
             // Skin Score
@@ -219,11 +215,12 @@ public struct HomeDashboardView: View {
                     .font(DesignTypography.displayEditorial)
                     .foregroundColor(DesignColors.roseGold)
                 
+                Spacer(minLength: 0)
+                
                 scoreSparkline
                     .frame(height: 40)
-                    .padding(.top, DesignSpacing.micro)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: dashboardCardHeight, alignment: .leading)
             .glassCard()
             
             VStack(alignment: .leading, spacing: DesignSpacing.small) {
@@ -231,11 +228,17 @@ public struct HomeDashboardView: View {
                     .font(DesignTypography.captionUI)
                     .captionTracking()
                     .foregroundColor(DesignColors.liquidSilver)
-                Text(viewModel.skinTrend)
-                    .font(DesignTypography.bodyStrongUI)
-                    .foregroundColor(trendColor)
+                
+                HStack(spacing: DesignSpacing.micro) {
+                    Image(systemName: viewModel.skinTrendStatus.icon)
+                        .font(.system(size: 16, weight: .semibold))
+                    
+                    Text(viewModel.skinTrendStatus.label)
+                        .font(DesignTypography.bodyStrongUI)
+                }
+                .foregroundColor(trendColor)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: dashboardCardHeight, alignment: .leading)
             .glassCard()
             .overlay(alignment: .top) {
                 if showingTrendTooltip {
@@ -262,14 +265,12 @@ public struct HomeDashboardView: View {
         .editorialReveal(delay: 0.5)
     }
     
-    /// Returns the appropriate color for the current skin trend
     private var trendColor: Color {
-        if viewModel.skinTrend.contains("Improving") {
-            return DesignColors.sageBotanical
-        } else if viewModel.skinTrend.contains("Declining") {
-            return DesignColors.velvetCrimson
-        } else {
-            return DesignColors.liquidSilver
+        switch viewModel.skinTrendStatus {
+        case .improving: return DesignColors.sageBotanical
+        case .declining: return DesignColors.velvetCrimson
+        case .stable: return DesignColors.roseGold // Use roseGold for stable as it's premium
+        case .unknown: return DesignColors.liquidSilver
         }
     }
     
@@ -300,13 +301,26 @@ public struct HomeDashboardView: View {
                         .interpolationMethod(.catmullRom)
                         .foregroundStyle(sparklineColor)
                         .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round))
+                        
+                        AreaMark(
+                            x: .value("Day", index),
+                            y: .value("Score", score)
+                        )
+                        .interpolationMethod(.catmullRom)
+                        .foregroundStyle(
+                            LinearGradient(
+                                gradient: Gradient(colors: [sparklineColor.opacity(0.3), sparklineColor.opacity(0.0)]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
                     }
                 }
                 .chartXAxis(.hidden)
                 .chartYAxis(.hidden)
                 .chartYScale(domain: 0...10)
                 .transition(.opacity)
-                .animation(.easeIn(duration: 0.6), value: viewModel.scoreHistory)
+                .animation(.easeIn(duration: 0.8), value: viewModel.scoreHistory)
             } else {
                 // Not enough data for sparkline
                 Color.clear
@@ -320,13 +334,15 @@ public struct HomeDashboardView: View {
         let scores = viewModel.scoreHistory
         let latest = scores.last!
         let previous = scores[scores.count - 2]
+        let diff = latest - previous
         
-        if latest > previous {
-            return DesignColors.sageBotanical // Green
-        } else if latest < previous {
-            return DesignColors.velvetCrimson // Red
+        // Use a small threshold for "Stable" to avoid jitter for tiny changes
+        if diff > 0.15 {
+            return DesignColors.sageBotanical // Green (improving)
+        } else if diff < -0.15 {
+            return DesignColors.velvetCrimson // Red (declining)
         } else {
-            return Color.orange // Orange (stable)
+            return Color.orange.opacity(0.8) // Orange (stable)
         }
     }
     

@@ -37,7 +37,6 @@ public struct OnboardingView: View {
                     .animation(DesignMotion.heroMaterialize, value: viewModel.currentStage)
             }
         }
-        .colorScheme(.dark)
         .onChange(of: viewModel.selectedSkinTone) { newTone in
             avatarViewModel.updateSkinTone(to: newTone)
         }

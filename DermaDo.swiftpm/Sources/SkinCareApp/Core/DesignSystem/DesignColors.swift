@@ -1,36 +1,47 @@
 import SwiftUI
 
 /// Luxury Fashion-Tech Color Palette for DermaDo 2.0
+/// Background and text colors adapt to light/dark mode.
 public enum DesignColors {
     
-    // MARK: - The Void (Backgrounds / Surfaces)
+    // MARK: - The Void (Backgrounds / Surfaces) — Adaptive
     
-    /// Absolute background. Deepest black.
-    public static let voidObsidian = Color(hex: "#050505")
+    /// Absolute background. Adapts: dark → deepest black, light → warm off-white.
+    public static let voidObsidian = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark ? UIColor(hex: "#050505") : UIColor(hex: "#F5F3F0")
+    })
     
-    /// Elevated cards and standard surfaces.
-    public static let voidCharcoal = Color(hex: "#121212")
+    /// Elevated cards and standard surfaces. Adapts for both modes.
+    public static let voidCharcoal = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark ? UIColor(hex: "#121212") : UIColor(hex: "#FFFFFF")
+    })
     
-    /// Highest elevation, input fields, pressed states.
-    public static let voidAsh = Color(hex: "#1C1C1E")
+    /// Highest elevation, input fields, pressed states. Adapts for both modes.
+    public static let voidAsh = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark ? UIColor(hex: "#1C1C1E") : UIColor(hex: "#E8E5E0")
+    })
     
     
-    // MARK: - The Cosmetics (Primary Accents)
+    // MARK: - The Cosmetics (Primary Accents / Text) — Adaptive
     
-    /// Primary text. Not pure white to reduce eye strain.
-    public static let luminousPearl = Color(hex: "#F8F8F2")
+    /// Primary text. Adapts: dark → soft white, light → near black.
+    public static let luminousPearl = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark ? UIColor(hex: "#F8F8F2") : UIColor(hex: "#1A1A1A")
+    })
     
     /// Primary interactive color, signifies luxury/skin.
     public static let roseGold = Color(hex: "#E0A96D")
     
-    /// Secondary text, inactive states, subtle dividers. (Brightened for contrast)
-    public static let liquidSilver = Color(hex: "#BFBAB3")
+    /// Secondary text, inactive states, subtle dividers. Adapts for readability.
+    public static let liquidSilver = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark ? UIColor(hex: "#BFBAB3") : UIColor(hex: "#6B6560")
+    })
     
     /// Default skin tone for the avatar base
     public static let sandalwoodMedium = Color(hex: "#D2A28A")
     
     
-    // MARK: - The Elements (Semantic & Status)
+    // MARK: - The Elements (Semantic & Status) — Constant
     
     /// For moisturizers / toners / water elements.
     public static let ceruleanHydration = Color(hex: "#5B8FB9")
@@ -68,3 +79,5 @@ extension Color {
         )
     }
 }
+
+

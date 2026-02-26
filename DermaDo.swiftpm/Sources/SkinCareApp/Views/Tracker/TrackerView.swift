@@ -48,7 +48,6 @@ struct TrackerViewContent: View {
                 .padding(.top, DesignSpacing.editorial)
             }
         }
-        .colorScheme(.dark)
         .onAppear {
             viewModel.refresh()
             withAnimation(DesignMotion.heroMaterialize) {
@@ -58,11 +57,6 @@ struct TrackerViewContent: View {
         .sheet(isPresented: $showingAddEntry) {
             AddEntryView(viewModel: AddEntryViewModel(trackerManager: dependencies.trackerManager, dataManager: dependencies.dataManager), onSaved: {
                 viewModel.refresh()
-<<<<<<< HEAD
-                if !reduceMotion {
-                    withAnimation(DesignMotion.editorialSpring) {
-                        appeared = true
-=======
             })
         }
     }
@@ -259,16 +253,23 @@ struct TrackerViewContent: View {
                 .foregroundColor(DesignColors.luminousPearl)
 
             if viewModel.allEntries.isEmpty {
-                Text("No entries yet.")
-                    .font(DesignTypography.bodyUI)
-                    .foregroundColor(DesignColors.liquidSilver)
+                emptyEntriesPlaceholder
             } else {
-                VStack(spacing: DesignSpacing.small) {
-                    ForEach(viewModel.allEntries.prefix(5)) { entry in
-                        EntryCard(entry: entry, viewModel: viewModel)
->>>>>>> mac-ui-major-backup
-                    }
-                }
+                recentEntriesList
+            }
+        }
+    }
+
+    private var emptyEntriesPlaceholder: some View {
+        Text("No entries yet.")
+            .font(DesignTypography.bodyUI)
+            .foregroundColor(DesignColors.liquidSilver)
+    }
+
+    private var recentEntriesList: some View {
+        VStack(spacing: DesignSpacing.small) {
+            ForEach(viewModel.allEntries.prefix(5)) { entry in
+                EntryCard(entry: entry, viewModel: viewModel)
             }
         }
     }

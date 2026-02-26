@@ -5,7 +5,6 @@ struct MainView: View {
     @State private var selectedTab: AppTab = .home
 
     var body: some View {
-    var body: some View {
         TabView(selection: $selectedTab) {
             ForEach(AppTab.allCases) { tab in
                 view(for: tab)

@@ -4,6 +4,7 @@ import Combine
 
 // MARK: - TrackerViewModel
 /// Drives the Tracker screen: entry list, weekly/monthly graph data, analytics.
+@MainActor
 class TrackerViewModel: ObservableObject {
 
     // MARK: - Dependencies

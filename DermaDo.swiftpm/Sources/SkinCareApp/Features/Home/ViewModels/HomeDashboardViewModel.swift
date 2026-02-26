@@ -27,9 +27,31 @@ public final class HomeDashboardViewModel: ObservableObject {
     @Published public var hasRoutine: Bool = false
     @Published var todayRoutine: Routine?
     
+    public enum TrendStatus {
+        case improving, stable, declining, unknown
+        
+        public var icon: String {
+            switch self {
+            case .improving: return "arrow.up"
+            case .stable: return "arrow.right"
+            case .declining: return "arrow.down"
+            case .unknown: return "minus"
+            }
+        }
+        
+        public var label: String {
+            switch self {
+            case .improving: return "Improving"
+            case .stable: return "Stable"
+            case .declining: return "Declining"
+            case .unknown: return "No data"
+            }
+        }
+    }
+    
     /// Skin tracker glance
     @Published public var lastSkinScore: String = "—"
-    @Published public var skinTrend: String = "No data yet"
+    @Published public var skinTrendStatus: TrendStatus = .unknown
     @Published public var scoreHistory: [Double] = []
     
     /// Consistency
@@ -116,13 +138,7 @@ public final class HomeDashboardViewModel: ObservableObject {
     // MARK: - Greeting
     
     private func computeGreeting() {
-        let hour = Calendar.current.component(.hour, from: Date())
-        switch hour {
-        case 5..<12:  greetingText = "Good Morning"
-        case 12..<17: greetingText = "Good Afternoon"
-        case 17..<21: greetingText = "Good Evening"
-        default:      greetingText = "Good Night"
-        }
+        greetingText = GreetingManager.personalizedGreeting()
     }
     
     // MARK: - Today's Routine
@@ -173,37 +189,68 @@ public final class HomeDashboardViewModel: ObservableObject {
     
     private func computeSkinGlance() {
         let entries = trackerManager.fetchAllEntries()
-            .sorted { $0.date > $1.date }
+            .sorted { $0.date < $1.date } // Chronological for processing
         
-        guard let latest = entries.first else {
+        guard let latest = entries.last else {
             lastSkinScore = "—"
-            skinTrend = "No data yet"
+            skinTrendStatus = .unknown
+            scoreHistory = []
             return
         }
         
-        // Score
+        // 1. Current Score
         lastSkinScore = formatScore(computeScore(for: latest))
         
-        // History: last 7 entries (reversed for chronological order)
-        let last7 = entries.prefix(7).reversed()
-        scoreHistory = last7.map { computeScore(for: $0) }
+        // 2. 7-Day History (Temporal)
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        var history: [Double] = []
         
-        // Trend: compare to previous entry
-        if entries.count >= 2 {
-            let previous = entries[1]
-            let latestAvg = Double(latest.oilLevel + latest.drynessLevel + latest.rednessLevel) / 3.0
-            let prevAvg = Double(previous.oilLevel + previous.drynessLevel + previous.rednessLevel) / 3.0
-            let diff = prevAvg - latestAvg // positive = improving
+        // We'll look back 6 days + today = 7 days
+        for i in (0..<7).reversed() {
+            let targetDate = calendar.date(byAdding: .day, value: -i, to: today)!
             
-            if diff > 1.0 {
-                skinTrend = "↑ Improving"
-            } else if diff < -1.0 {
-                skinTrend = "↓ Declining"
+            // Find entries for this day
+            let dayEntries = entries.filter { calendar.isDate($0.date, inSameDayAs: targetDate) }
+            
+            if !dayEntries.isEmpty {
+                let dayAvg = dayEntries.map { computeScore(for: $0) }.reduce(0, +) / Double(dayEntries.count)
+                history.append(dayAvg)
             } else {
-                skinTrend = "→ Stable"
+                // No entry for this day. Use previous day's value if it's not the first point,
+                // otherwise find the closest previous entry.
+                if let lastVal = history.last {
+                    history.append(lastVal)
+                } else {
+                    // Find most recent entry BEFORE this day
+                    let previousEntries = entries.filter { $0.date < targetDate }
+                    if let mostRecent = previousEntries.last {
+                        history.append(computeScore(for: mostRecent))
+                    } else {
+                        // Default to 5.0 as a baseline if no history at all.
+                        history.append(5.0)
+                    }
+                }
+            }
+        }
+        
+        scoreHistory = history
+        
+        // 3. Trend: compare latest to previous point in history
+        if history.count >= 2 {
+            let current = history.last!
+            let previous = history[history.count - 2]
+            let diff = current - previous
+            
+            if diff > 0.3 {
+                skinTrendStatus = .improving
+            } else if diff < -0.3 {
+                skinTrendStatus = .declining
+            } else {
+                skinTrendStatus = .stable
             }
         } else {
-            skinTrend = "First entry logged"
+            skinTrendStatus = .unknown
         }
     }
     

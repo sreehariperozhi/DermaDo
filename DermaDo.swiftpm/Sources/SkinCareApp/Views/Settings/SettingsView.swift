@@ -15,126 +15,196 @@ struct SettingsView: View {
 
 struct SettingsViewContent: View {
     @StateObject var viewModel: SettingsViewModel
+    @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
-        NavigationStack {
-            Form {
-                // Section 1: Notifications
-                Section {
-                    Toggle(isOn: $viewModel.notificationsEnabled) {
-                        HStack(spacing: AppSpacing.sm) {
-                            Image(systemName: "bell.badge.fill")
-                                .foregroundColor(.appAccentPrimary)
-                                .symbolRenderingMode(.hierarchical)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Notifications")
-                                    .font(.appBody)
-                                Text("Master control for all reminders")
-                                    .font(.appCaptionText)
-                                    .foregroundColor(.appTextSecondary)
-                            }
-                        }
-                    }
-                    .tint(.appAccentPrimary)
+        ZStack {
+            // MARK: - Background
+            DesignColors.voidObsidian.ignoresSafeArea()
+            
+            // Ambient glow
+            Circle()
+                .fill(DesignColors.ceruleanHydration.opacity(0.1))
+                .frame(width: 400, height: 400)
+                .blur(radius: 100)
+                .offset(x: -150, y: -250)
 
-                    if viewModel.notificationsEnabled {
-                        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                            Text("Default Reminder Times")
-                                .font(.appCaptionText)
-                                .foregroundColor(.appTextSecondary)
-                                .padding(.top, 4)
-                            
-                            DatePicker("Morning Routine", selection: $viewModel.morningReminderTime, displayedComponents: .hourAndMinute)
-                                .font(.appBody)
-                            
-                            DatePicker("Evening Routine", selection: $viewModel.eveningReminderTime, displayedComponents: .hourAndMinute)
-                                .font(.appBody)
-                        }
-                        .padding(.vertical, 4)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                    }
-                } header: {
-                    Text("Notifications").font(.appCaptionText).foregroundColor(.appTextSecondary)
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: DesignSpacing.heroic) {
+                    
+                    // MARK: - Header
+                    headerSection
+                        .editorialReveal(delay: 0.1)
+
+                    // MARK: - Notifications Section
+                    notificationSection
+                        .editorialReveal(delay: 0.2)
+
+                    // MARK: - Voice Assistant Section
+                    voiceSection
+                        .editorialReveal(delay: 0.3)
+
+                    // MARK: - Appearance Section
+                    appearanceSection
+                        .editorialReveal(delay: 0.4)
+
+                    // MARK: - Footer
+                    footerSection
+                        .editorialReveal(delay: 0.5)
+                    
+                    Spacer().frame(height: 100)
                 }
-
-                // Section 2: Voice
-                Section {
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        HStack(spacing: AppSpacing.sm) {
-                            Image(systemName: "waveform")
-                                .foregroundColor(.appAccentPrimary)
-                            Text("Voice Tone")
-                                .font(.appBody)
-                            Spacer()
-                            Picker("Tone", selection: $viewModel.voiceTone) {
-                                ForEach(VoiceTone.allCases, id: \.self) { tone in
-                                    Text(tone.displayName).tag(tone)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .tint(.appAccentPrimary)
-                        }
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text("Speaking Speed")
-                                    .font(.appBody)
-                                Spacer()
-                                Text(String(format: "%.1fx", viewModel.voiceSpeed))
-                                    .font(.appNumericSmall)
-                                    .foregroundColor(.appAccentPrimary)
-                            }
-                            
-                            Slider(value: $viewModel.voiceSpeed, in: 0.5...2.0, step: 0.1)
-                                .tint(.appAccentPrimary)
-                        }
-                        .padding(.top, 4)
-                    }
-                    .padding(.vertical, 4)
-                } header: {
-                    Text("Voice Assistant").font(.appCaptionText).foregroundColor(.appTextSecondary)
-                }
-
-                // Section 3: Appearance
-                Section {
-                    Picker("Theme", selection: $viewModel.selectedTheme) {
-                        Label("Light", systemImage: "sun.max")
-                            .tag(AppTheme.light)
-                        Label("Dark", systemImage: "moon.stars")
-                            .tag(AppTheme.dark)
-                        Label("System", systemImage: "gearshape")
-                            .tag(AppTheme.system)
-                    }
-                    .pickerStyle(.inline)
-                    .tint(.appAccentPrimary)
-                } header: {
-                    Text("Appearance").font(.appCaptionText).foregroundColor(.appTextSecondary)
-                }
-
-                // Footer
-                Section {
-                    VStack(alignment: .center, spacing: 8) {
-                        Text("Version 2.1.0")
-                            .font(.appCaptionText)
-                            .foregroundColor(.appTextTertiary)
-                        Text("Designed with care for your skin.")
-                            .font(.system(size: 10, weight: .medium, design: .serif))
-                            .italic()
-                            .foregroundColor(.appTextTertiary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .listRowBackground(Color.clear)
-                }
+                .padding(.horizontal, DesignSpacing.large)
+                .padding(.top, DesignSpacing.editorial)
             }
-            .scrollContentBackground(.hidden)
-            .background(Color.appBackgroundPrimary.ignoresSafeArea())
-            .navigationTitle("Settings")
-            .alert(isPresented: $viewModel.showError) {
-                Alert(title: Text("Error"), message: Text(viewModel.errorMessage), dismissButton: .default(Text("OK")))
-            }
-            .animation(.default, value: viewModel.notificationsEnabled)
         }
+        .overlay(alignment: .top) {
+            // Custom Navbar-ish top bar for modal presentation if needed
+            // But we display it as a primary tab usually.
+        }
+        .alert("Error", isPresented: $viewModel.showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(viewModel.errorMessage)
+        }
+    }
+
+    // MARK: - Sections
+
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: DesignSpacing.micro) {
+            Text("PREFERENCES")
+                .font(DesignTypography.captionUI)
+                .captionTracking()
+                .foregroundColor(DesignColors.liquidSilver)
+            
+            Text("Settings")
+                .font(DesignTypography.displayEditorial)
+                .foregroundColor(DesignColors.luminousPearl)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var notificationSection: some View {
+        VStack(alignment: .leading, spacing: DesignSpacing.medium) {
+            sectionLabel("Notifications")
+            
+            VStack(spacing: 0) {
+                // Master Toggle
+                Toggle(isOn: $viewModel.notificationsEnabled) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Enable Reminders")
+                            .font(DesignTypography.bodyStrongUI)
+                            .foregroundColor(DesignColors.luminousPearl)
+                        Text("Master control for routine alerts")
+                            .font(DesignTypography.captionUI)
+                            .foregroundColor(DesignColors.liquidSilver)
+                    }
+                }
+                .tint(DesignColors.roseGold)
+                .padding(DesignSpacing.medium)
+                
+                if viewModel.notificationsEnabled {
+                    Divider().background(DesignColors.voidAsh.opacity(0.3))
+                        .padding(.horizontal, DesignSpacing.medium)
+
+                    VStack(spacing: DesignSpacing.small) {
+                        DatePicker("Morning Routine", selection: $viewModel.morningReminderTime, displayedComponents: .hourAndMinute)
+                            .font(DesignTypography.bodyUI)
+                            .foregroundColor(DesignColors.luminousPearl)
+                        
+                        DatePicker("Evening Routine", selection: $viewModel.eveningReminderTime, displayedComponents: .hourAndMinute)
+                            .font(DesignTypography.bodyUI)
+                            .foregroundColor(DesignColors.luminousPearl)
+                    }
+                    .padding(DesignSpacing.medium)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .glassCard()
+        }
+    }
+
+    private var voiceSection: some View {
+        VStack(alignment: .leading, spacing: DesignSpacing.medium) {
+            sectionLabel("Voice Assistant")
+            
+            VStack(alignment: .leading, spacing: DesignSpacing.large) {
+                // Tone Picker
+                VStack(alignment: .leading, spacing: DesignSpacing.small) {
+                    Text("Voice Tone")
+                        .font(DesignTypography.captionUI)
+                        .foregroundColor(DesignColors.liquidSilver)
+                    
+                    Picker("Tone", selection: $viewModel.voiceTone) {
+                        ForEach(VoiceTone.allCases, id: \.self) { tone in
+                            Text(tone.displayName).tag(tone)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+                
+                // Speed Slider
+                VStack(alignment: .leading, spacing: DesignSpacing.small) {
+                    HStack {
+                        Text("Speaking Speed")
+                            .font(DesignTypography.captionUI)
+                            .foregroundColor(DesignColors.liquidSilver)
+                        Spacer()
+                        Text(String(format: "%.1fx", viewModel.voiceSpeed))
+                            .font(DesignTypography.bodyStrongUI)
+                            .foregroundColor(DesignColors.roseGold)
+                    }
+                    
+                    Slider(value: $viewModel.voiceSpeed, in: 0.5...2.0, step: 0.1)
+                        .tint(DesignColors.roseGold)
+                }
+            }
+            .padding(DesignSpacing.medium)
+            .glassCard()
+        }
+    }
+
+    private var appearanceSection: some View {
+        VStack(alignment: .leading, spacing: DesignSpacing.medium) {
+            sectionLabel("Appearance")
+            
+            VStack(spacing: 0) {
+                Picker("Theme", selection: $viewModel.selectedTheme) {
+                    Text("Light").tag(AppTheme.light)
+                    Text("Dark").tag(AppTheme.dark)
+                    Text("System").tag(AppTheme.system)
+                }
+                .pickerStyle(.segmented)
+                .padding(DesignSpacing.medium)
+            }
+            .glassCard()
+        }
+    }
+
+    private var footerSection: some View {
+        VStack(spacing: DesignSpacing.small) {
+            Text("Version 2.2.0")
+                .font(DesignTypography.microUI)
+                .foregroundColor(DesignColors.liquidSilver)
+            
+            Text("Designed for minimalist skincare rituals.")
+                .font(DesignTypography.microUI)
+                .italic()
+                .foregroundColor(DesignColors.liquidSilver.opacity(0.6))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, DesignSpacing.large)
+    }
+
+    // MARK: - UI Helpers
+
+    private func sectionLabel(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(DesignTypography.microUI)
+            .captionTracking()
+            .foregroundColor(DesignColors.liquidSilver)
+            .padding(.leading, 4)
     }
 }
 

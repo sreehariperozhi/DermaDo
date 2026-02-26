@@ -3,6 +3,7 @@ import Combine
 
 // MARK: - HomeViewModel
 /// View model for the Home screen. Computes display-ready data using `ObservableObject`.
+@MainActor
 final class HomeViewModel: ObservableObject {
 
     // MARK: - Dependencies

@@ -3,6 +3,7 @@ import Combine
 
 // MARK: - ProductManagerProtocol
 /// Defines the contract for managing the product catalog.
+@MainActor
 protocol ProductManagerProtocol: AnyObject {
     var productsPublisher: AnyPublisher<[Product], Never> { get }
     

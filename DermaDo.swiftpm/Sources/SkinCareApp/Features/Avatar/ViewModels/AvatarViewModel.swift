@@ -87,15 +87,15 @@ public final class AvatarViewModel: ObservableObject {
             case .serum:
                 state.expression = "avatar_eyes_winking"
                 state.activeOverlay = nil
-                voiceManager?.speak("Let's apply your serum. Softly pat it in to help it absorb.")
+                voiceManager?.speak("Gently press the serum into your skin to help it absorb.")
             case .moisturizing:
                 state.expression = "avatar_eyes_open"
                 state.activeOverlay = nil
-                voiceManager?.speak("Time to hydrate. Gently massage the moisturizer into your skin.")
+                voiceManager?.speak("A moment to hydrate. Gently massage the moisturizer into your skin.")
             case .sunscreen:
                 state.expression = "avatar_eyes_open"
                 state.activeOverlay = nil
-                voiceManager?.speak("The final touch, protection. Your skin looks beautiful today.")
+                voiceManager?.speak("The final layer of protection. Your skin is glowing beautifully today.")
             case .none:
                 state.expression = "avatar_eyes_open"
                 state.activeOverlay = nil

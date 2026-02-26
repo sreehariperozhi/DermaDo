@@ -2,6 +2,7 @@ import Foundation
 import Combine
 
 /// Protocol defining the progress tracking interface.
+@MainActor
 public protocol ProgressManagerProtocol: AnyObject {
     
     /// Records a routine completion for today, updating streak and stats.
