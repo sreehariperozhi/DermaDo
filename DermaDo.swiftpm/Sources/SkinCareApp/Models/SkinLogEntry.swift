@@ -68,3 +68,33 @@ enum Mood: String, Codable, CaseIterable {
     case anxious
     case sad
 }
+
+// MARK: - Mood Extensions
+
+extension Mood {
+    /// SF Symbol name for each mood.
+    var sfSymbol: String {
+        switch self {
+        case .great:    return "face.smiling"
+        case .good:     return "hand.thumbsup"
+        case .neutral:  return "minus.circle"
+        case .stressed: return "cloud.bolt"
+        case .tired:    return "moon.zzz"
+        case .anxious:  return "exclamationmark.triangle"
+        case .sad:      return "drop"
+        }
+    }
+
+    /// Display name for the mood.
+    var displayName: String {
+        switch self {
+        case .great:    return "Great"
+        case .good:     return "Good"
+        case .neutral:  return "Neutral"
+        case .stressed: return "Stressed"
+        case .tired:    return "Tired"
+        case .anxious:  return "Anxious"
+        case .sad:      return "Sad"
+        }
+    }
+}

@@ -30,12 +30,10 @@ public struct AppMainView: View {
                 ))
                     .transition(DesignMotion.editorialReveal)
             case .routine:
-                Text("Routine Logic (2.0)")
-                    .foregroundColor(DesignColors.liquidSilver)
+                RoutinesView()
                     .transition(DesignMotion.editorialReveal)
             case .tracker:
-                Text("Skin Tracker (2.0)")
-                    .foregroundColor(DesignColors.liquidSilver)
+                TrackerView()
                     .transition(DesignMotion.editorialReveal)
             case .avatar:
                 AvatarPlaygroundView(activeSession: activeSession, voiceManager: voiceManager)
@@ -54,6 +52,11 @@ public struct AppMainView: View {
         .colorScheme(.dark) // Force dark mode first on 2.0 shell
         .onAppear {
             if !hasCompletedOnboarding {
+                showOnboarding = true
+            }
+        }
+        .onChange(of: hasCompletedOnboarding) { newValue in
+            if !newValue {
                 showOnboarding = true
             }
         }

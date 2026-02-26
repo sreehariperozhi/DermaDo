@@ -2,16 +2,17 @@ import SwiftUI
 
 struct EditRoutineStepView: View {
     @Environment(\.presentationMode) var presentationMode
-    
+
     @State var step: RoutineStep
     var onSave: (RoutineStep) -> Void
     var onDelete: (UUID) -> Void
-    
+
     // For duration picking
     let durationOptions = [0, 30, 60, 120, 300, 600]
-    
+
     var body: some View {
         NavigationView {
+<<<<<<< HEAD
             Form {
                 Section(header: Text("Step Details").font(.appCaptionText).foregroundColor(.appTextSecondary)) {
                     Picker("Type", selection: $step.stepType) {
@@ -69,12 +70,57 @@ struct EditRoutineStepView: View {
                             Spacer()
                             Text("Delete Step")
                             Spacer()
+=======
+            ZStack {
+                DesignColors.voidObsidian.ignoresSafeArea()
+
+                Form {
+                    Section(header: sectionHeader("Step Details")) {
+                        Picker("Type", selection: $step.stepType) {
+                            ForEach(StepType.allCases, id: \.self) { type in
+                                Text(RoutineValidationEngine.displayName(type)).tag(type)
+                            }
+                        }
+                        .foregroundColor(DesignColors.luminousPearl)
+
+                        TextField("Instruction", text: $step.instruction)
+                            .font(DesignTypography.bodyUI)
+                            .foregroundColor(DesignColors.luminousPearl)
+                    }
+                    .listRowBackground(Color.white.opacity(0.05))
+
+                    Section(header: sectionHeader("Duration")) {
+                        Picker("Specific Duration (Seconds)", selection: Binding(
+                            get: { step.durationSeconds ?? 0 },
+                            set: { step.durationSeconds = $0 == 0 ? nil : $0 }
+                        )) {
+                            Text("None").tag(0)
+                            ForEach(durationOptions.filter { $0 > 0 }, id: \.self) { duration in
+                                Text("\(duration)s").tag(duration)
+                            }
+                        }
+                        .foregroundColor(DesignColors.luminousPearl)
+                    }
+                    .listRowBackground(Color.white.opacity(0.05))
+
+                    Section {
+                        Button(role: .destructive, action: {
+                            onDelete(step.id)
+                            presentationMode.wrappedValue.dismiss()
+                        }) {
+                            HStack {
+                                Spacer()
+                                Text("Delete Step")
+                                Spacer()
+                            }
+>>>>>>> mac-ui-major-backup
                         }
                     }
+                    .listRowBackground(Color.red.opacity(0.08))
                 }
+                .scrollContentBackground(.hidden)
             }
-            .scrollContentBackground(.hidden)
-            .background(Color.appBackgroundPrimary.ignoresSafeArea())
+            .colorScheme(.dark)
             .navigationTitle("Edit Step")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -82,23 +128,30 @@ struct EditRoutineStepView: View {
                     Button("Cancel") {
                         presentationMode.wrappedValue.dismiss()
                     }
-                    .foregroundColor(.appAccentPrimary)
+                    .foregroundColor(DesignColors.liquidSilver)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         onSave(step)
                         presentationMode.wrappedValue.dismiss()
                     }
-                    .foregroundColor(.appAccentPrimary)
+                    .foregroundColor(DesignColors.roseGold)
+                    .fontWeight(.semibold)
                 }
             }
-            // Auto fill instruction when type changes, but only if user hasn't heavily customized it (optional simple sync)
+            // Auto fill instruction when type changes
             .onChange(of: step.stepType) { newType in
-                // If it looks like a default name, update it automatically
                 if StepType.allCases.contains(where: { RoutineValidationEngine.displayName($0) == step.instruction }) {
                     step.instruction = RoutineValidationEngine.displayName(newType)
                 }
             }
         }
+    }
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(DesignTypography.captionUI)
+            .captionTracking()
+            .foregroundColor(DesignColors.liquidSilver)
     }
 }

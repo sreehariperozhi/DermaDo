@@ -15,15 +15,14 @@ public struct AvatarRenderView: View {
         
         ZStack {
             // LAYER 1: The Ambient Glow
-            // Intensifies as the user completes their routines
             Circle()
                 .fill(DesignColors.roseGold.opacity(state.glowIntensity * 0.4))
                 .blur(radius: 80)
                 .scaleEffect(1.0 + (state.glowIntensity * 0.5))
-                // Add an extra pulse if voice is actively listening
                 .scaleEffect(state.isVoiceListening ? 1.05 : 1.0)
                 .animation(state.isVoiceListening ? Animation.easeInOut(duration: 1).repeatForever(autoreverses: true) : DesignMotion.editorialSpring, value: state.isVoiceListening)
             
+<<<<<<< HEAD
             // LAYER 2: The Character ZStack
             ZStack {
                 // Base Body (Tinted by Skin Tone configuration)
@@ -92,18 +91,45 @@ public struct AvatarRenderView: View {
                         .offset(y: overlayName == "avatar_overlay_cleanser" ? 10 : 0)
                         .transition(.opacity.animation(.easeInOut(duration: 0.4))) // Smooth 0.4s fade-in
                 }
+=======
+            // LAYER 2: The Avatar Image
+            Image("onboarding_avatar")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 280, height: 400)
+                .overlay(
+                    // Progress-driven skin brightness glow
+                    Rectangle()
+                        .fill(Color.white.opacity(state.skinBrightness * 0.3))
+                        .blur(radius: 20)
+                        .blendMode(.softLight)
+                )
+                .drawingGroup()
+                // The character breathes gently
+                .scaleEffect(isBreathing ? 1.01 : 1.00)
+                .animation(
+                    Animation.easeInOut(duration: 3.0).repeatForever(autoreverses: true),
+                    value: isBreathing
+                )
+            
+            // LAYER 3: Contextual Overlay (Cleanser Foam, Mask)
+            if state.activeOverlay == "avatar_overlay_cleanser" {
+                Circle()
+                    .fill(Color.white.opacity(0.8))
+                    .frame(width: 120, height: 80)
+                    .blur(radius: 10)
+                    .offset(y: 20)
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
+            } else if state.activeOverlay == "avatar_overlay_mask" {
+                Rectangle()
+                    .fill(DesignColors.ceruleanHydration.opacity(0.4))
+                    .frame(width: 200, height: 260)
+                    .blur(radius: 5)
+                    .cornerRadius(40)
+                    .offset(y: 0)
+                    .transition(.opacity)
+>>>>>>> mac-ui-major-backup
             }
-            .frame(width: 300, height: 400)
-            // Flat vector styling for the fashion-tech 2D look
-            .drawingGroup() 
-            // The character breathes gently when idle — organic, living feel
-            .scaleEffect(isBreathing ? 1.02 : 1.0)
-            .animation(
-                Animation.easeInOut(duration: 3.0).repeatForever(autoreverses: true),
-                value: isBreathing
-            )
-            .animation(DesignMotion.editorialSpring, value: state.expression)
-            .animation(DesignMotion.editorialSpring, value: state.activeOverlay)
         }
         .onAppear {
             isBreathing = true

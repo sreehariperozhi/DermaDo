@@ -54,21 +54,21 @@ public final class OnboardingViewModel: ObservableObject {
     
     public var avatarScale: CGFloat {
         switch currentStage {
-        case .welcome:  return 1.2
-        case .name:     return 1.0
-        case .skinTone: return 1.8
-        case .skinType: return 1.0
-        case .ready:    return 1.3
+        case .welcome:  return 1.1
+        case .name:     return 0.9
+        case .skinTone: return 1.4
+        case .skinType: return 0.9
+        case .ready:    return 1.2
         }
     }
     
     public var avatarOffsetY: CGFloat {
         switch currentStage {
-        case .welcome:  return 20
-        case .name:     return -50
-        case .skinTone: return 100
-        case .skinType: return -50
-        case .ready:    return 0
+        case .welcome:  return -20
+        case .name:     return -80
+        case .skinTone: return 60
+        case .skinType: return -80
+        case .ready:    return -40
         }
     }
     
