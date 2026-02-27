@@ -18,6 +18,7 @@ final class AppDependencies: ObservableObject {
     let trackerManager: TrackerManagerProtocol
     let settingsManager: SettingsManagerProtocol
     let progressManager: ProgressManagerProtocol
+    let userManager: UserManagerProtocol
     
     // MARK: - Initialization
     
@@ -30,7 +31,11 @@ final class AppDependencies: ObservableObject {
         let notificationManager = NotificationManager()
         self.notificationManager = notificationManager
         
-        // 3. Independent Domain Managers
+        // 3. User Manager (depends on Data)
+        let userManager = UserManager(dataManager: dataManager)
+        self.userManager = userManager
+        
+        // 4. Independent Domain Managers
         // Removed InsightManager
         
         // 4. Achievement Manager (depends on Data)

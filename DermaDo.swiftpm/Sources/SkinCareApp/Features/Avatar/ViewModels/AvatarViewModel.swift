@@ -54,10 +54,6 @@ public final class AvatarViewModel: ObservableObject {
     
     // MARK: - Configuration Methods
     
-    public func updateSkinTone(to color: Color) {
-        state.skinTone = color
-    }
-    
     public func setExpression(_ expression: String) {
         state.expression = expression
     }

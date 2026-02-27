@@ -5,9 +5,6 @@ public struct AvatarState: Equatable {
     
     // MARK: - Persistent Configuration (The "Look")
     
-    /// The base tint applied to the `.colorMultiply` layer of the avatar.
-    public var skinTone: Color
-    
     /// The name of the SVG asset representing the hair layer.
     public var hairStyle: String
     
@@ -32,7 +29,6 @@ public struct AvatarState: Equatable {
     public var isVoiceListening: Bool
     
     public init(
-        skinTone: Color = DesignColors.sandalwoodMedium,
         hairStyle: String = "avatar_hair_default",
         outfit: String = "avatar_outfit_robe",
         expression: String = "avatar_eyes_open",
@@ -41,7 +37,6 @@ public struct AvatarState: Equatable {
         skinBrightness: Double = 0.0,
         isVoiceListening: Bool = false
     ) {
-        self.skinTone = skinTone
         self.hairStyle = hairStyle
         self.outfit = outfit
         self.expression = expression

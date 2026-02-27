@@ -7,8 +7,8 @@ import Combine
 public enum OnboardingStage: Int, CaseIterable {
     case welcome = 0
     case name
-    case skinTone
     case skinType
+    case skinGoal
     case ready
 }
 
@@ -25,21 +25,11 @@ public final class OnboardingViewModel: ObservableObject {
     
     // MARK: - User Input
     @Published public var userName: String = ""
-    @Published public var selectedSkinTone: Color = DesignColors.sandalwoodMedium
     @Published var selectedSkinType: SkinType = .normal
+    @Published var selectedSkinGoals: Set<SkinGoal> = []
     
     // MARK: - Completion
     @Published public var isComplete: Bool = false
-    
-    // MARK: - Available Skin Tones
-    public let skinToneOptions: [(name: String, color: Color)] = [
-        ("Fair",        Color(hex: "#FFE0BD")),
-        ("Light",       Color(hex: "#FFDAC1")),
-        ("Medium",      DesignColors.sandalwoodMedium),
-        ("Olive",       Color(hex: "#E0AC69")),
-        ("Tan",         Color(hex: "#C68642")),
-        ("Deep",        Color(hex: "#8D5524"))
-    ]
     
     // MARK: - Skin Type Options
     let skinTypeOptions: [(type: SkinType, label: String, icon: String)] = [
@@ -50,14 +40,17 @@ public final class OnboardingViewModel: ObservableObject {
         (.sensitive,   "Sensitive",   "leaf")
     ]
     
+    // MARK: - Skin Goal Options
+    let skinGoalOptions: [SkinGoal] = SkinGoal.allCases
+    
     // MARK: - Camera Zoom per Stage
     
     public var avatarScale: CGFloat {
         switch currentStage {
         case .welcome:  return 1.1
         case .name:     return 0.9
-        case .skinTone: return 1.4
-        case .skinType: return 0.9
+        case .skinType: return 1.0
+        case .skinGoal: return 0.85
         case .ready:    return 1.2
         }
     }
@@ -66,8 +59,8 @@ public final class OnboardingViewModel: ObservableObject {
         switch currentStage {
         case .welcome:  return -20
         case .name:     return -80
-        case .skinTone: return 60
-        case .skinType: return -80
+        case .skinType: return -60
+        case .skinGoal: return -100
         case .ready:    return -40
         }
     }
@@ -76,37 +69,54 @@ public final class OnboardingViewModel: ObservableObject {
     
     public var questionText: String {
         switch currentStage {
-        case .welcome:  return "Hello.\nI'm your DermaDo companion."
+        case .welcome:  return "Hello.\nI am your DermaDo companion."
         case .name:     return "What should I call you?"
-        case .skinTone: return "Let's personalize\nmy look."
-        case .skinType: return "How would you describe\nyour skin?"
-        case .ready:    return "Perfect.\nLet's get glowing."
+        case .skinType: return "How would you describe your skin?"
+        case .skinGoal: return "What’s your main skin goal?"
+        case .ready:    return "Your personalized skin journey starts now."
         }
     }
     
     public var canAdvance: Bool {
         switch currentStage {
         case .name: return !userName.trimmingCharacters(in: .whitespaces).isEmpty
+        case .skinGoal: return !selectedSkinGoals.isEmpty
         default: return true
         }
     }
     
     public var buttonLabel: String {
         switch currentStage {
-        case .welcome: return "Begin"
+        case .welcome: return "Get Started"
         case .ready:   return "Enter DermaDo"
         default:       return "Continue"
         }
     }
     
+    public var currentStepNumber: Int {
+        currentStage.rawValue + 1
+    }
+    
+    public var totalSteps: Int {
+        OnboardingStage.allCases.count
+    }
+    
     // MARK: - Navigation
+    
+    public func toggleSkinGoal(_ goal: SkinGoal) {
+        if selectedSkinGoals.contains(goal) {
+            selectedSkinGoals.remove(goal)
+        } else {
+            selectedSkinGoals.insert(goal)
+        }
+    }
     
     public func advance() {
         guard canAdvance else { return }
         
         let stages = OnboardingStage.allCases
         guard let currentIndex = stages.firstIndex(of: currentStage),
-              currentIndex < stages.count - 1 else {
+               currentIndex < stages.count - 1 else {
             // Finished — mark as complete
             withAnimation(DesignMotion.heroMaterialize) {
                 isComplete = true

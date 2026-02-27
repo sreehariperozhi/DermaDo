@@ -12,9 +12,9 @@ public struct OnboardingView: View {
     @StateObject private var avatarViewModel = AvatarViewModel()
     
     /// Called by parent when onboarding completes, with the user's chosen data.
-    var onComplete: (String, Color, SkinType) -> Void
+    var onComplete: (String, SkinType, Set<SkinGoal>) -> Void
     
-    init(onComplete: @escaping (String, Color, SkinType) -> Void) {
+    init(onComplete: @escaping (String, SkinType, Set<SkinGoal>) -> Void) {
         self.onComplete = onComplete
     }
     
@@ -28,6 +28,10 @@ public struct OnboardingView: View {
             
             // MARK: - Layer 3: Typography + Controls
             VStack {
+                // Step Indicator
+                stepIndicator
+                    .padding(.top, DesignSpacing.large)
+                
                 Spacer()
                 
                 foregroundContent
@@ -37,16 +41,11 @@ public struct OnboardingView: View {
                     .animation(DesignMotion.heroMaterialize, value: viewModel.currentStage)
             }
         }
-        .onChange(of: viewModel.selectedSkinTone) { newTone in
-            avatarViewModel.updateSkinTone(to: newTone)
-        }
         .onChange(of: viewModel.currentStage) { stage in
             // Avatar reactions per stage
             switch stage {
             case .welcome:
                 avatarViewModel.resetToIdle()
-            case .skinTone:
-                avatarViewModel.setGlowIntensity(0.3)
             case .ready:
                 // Wink + supernova glow
                 withAnimation(DesignMotion.heroMaterialize) {
@@ -59,9 +58,22 @@ public struct OnboardingView: View {
         }
         .onChange(of: viewModel.isComplete) { done in
             if done {
-                onComplete(viewModel.userName, viewModel.selectedSkinTone, viewModel.selectedSkinType)
+                onComplete(viewModel.userName, viewModel.selectedSkinType, viewModel.selectedSkinGoals)
             }
         }
+    }
+    
+    // MARK: - Step Indicator
+    
+    private var stepIndicator: some View {
+        Text("Step \(viewModel.currentStepNumber) of \(viewModel.totalSteps)")
+            .font(DesignTypography.microUI)
+            .foregroundColor(DesignColors.liquidSilver)
+            .padding(.horizontal, DesignSpacing.standard)
+            .padding(.vertical, DesignSpacing.micro)
+            .background(Capsule().fill(DesignColors.voidAsh.opacity(0.4)))
+            .opacity(viewModel.currentStage == .ready ? 0 : 1)
+            .animation(DesignMotion.heroMaterialize, value: viewModel.currentStage)
     }
     
     // MARK: - Background Layer
@@ -116,11 +128,11 @@ public struct OnboardingView: View {
                 case .name:
                     nameInput
                     
-                case .skinTone:
-                    skinTonePicker
-                    
                 case .skinType:
                     skinTypePicker
+                    
+                case .skinGoal:
+                    skinGoalPicker
                     
                 case .ready:
                     EmptyView()
@@ -178,45 +190,17 @@ public struct OnboardingView: View {
         .transition(.opacity.combined(with: .offset(y: 20)))
     }
     
-    // MARK: - Skin Tone Picker
-    
-    private var skinTonePicker: some View {
-        HStack(spacing: DesignSpacing.standard) {
-            ForEach(viewModel.skinToneOptions, id: \.name) { option in
-                VStack(spacing: DesignSpacing.micro) {
-                    Circle()
-                        .fill(option.color)
-                        .frame(width: 48, height: 48)
-                        .overlay(
-                            Circle()
-                                .stroke(DesignColors.luminousPearl, lineWidth: viewModel.selectedSkinTone == option.color ? 3 : 0)
-                        )
-                        .scaleEffect(viewModel.selectedSkinTone == option.color ? 1.15 : 1.0)
-                        .animation(DesignMotion.tactilePress, value: viewModel.selectedSkinTone)
-                    
-                    Text(option.name)
-                        .font(DesignTypography.microUI)
-                        .foregroundColor(DesignColors.liquidSilver)
-                }
-                .onTapGesture {
-                    viewModel.selectedSkinTone = option.color
-                }
-            }
-        }
-        .transition(.opacity.combined(with: .offset(y: 20)))
-    }
-    
     // MARK: - Skin Type Picker
     
     private var skinTypePicker: some View {
-        VStack(spacing: DesignSpacing.standard) {
+        VStack(spacing: DesignSpacing.small) {
             ForEach(viewModel.skinTypeOptions, id: \.type) { option in
                 Button(action: { viewModel.selectedSkinType = option.type }) {
                     HStack(spacing: DesignSpacing.standard) {
                         Image(systemName: option.icon)
-                            .font(.system(size: 20))
+                            .font(.system(size: 18))
                             .foregroundColor(viewModel.selectedSkinType == option.type ? DesignColors.roseGold : DesignColors.liquidSilver)
-                            .frame(width: 32)
+                            .frame(width: 24)
                         
                         Text(option.label)
                             .font(DesignTypography.bodyUI)
@@ -231,7 +215,7 @@ public struct OnboardingView: View {
                         }
                     }
                     .padding(.horizontal, DesignSpacing.medium)
-                    .padding(.vertical, DesignSpacing.standard)
+                    .padding(.vertical, DesignSpacing.small)
                     .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: DesignRadius.element, style: .continuous))
                     .overlay(
@@ -246,6 +230,53 @@ public struct OnboardingView: View {
             }
         }
         .padding(.horizontal, DesignSpacing.standard)
+        .transition(.opacity.combined(with: .offset(y: 20)))
+    }
+    
+    // MARK: - Skin Goal Picker
+    
+    private var skinGoalPicker: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: DesignSpacing.small) {
+                ForEach(viewModel.skinGoalOptions, id: \.self) { goal in
+                    Button(action: { viewModel.toggleSkinGoal(goal) }) {
+                        let isSelected = viewModel.selectedSkinGoals.contains(goal)
+                        HStack {
+                            Text(goal.rawValue)
+                                .font(DesignTypography.bodyUI)
+                                .foregroundColor(isSelected ? DesignColors.luminousPearl : DesignColors.liquidSilver)
+                            
+                            Spacer()
+                            
+                            if isSelected {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(DesignColors.roseGold)
+                                    .transition(.scale.combined(with: .opacity))
+                            } else {
+                                Circle()
+                                    .stroke(DesignColors.voidAsh, lineWidth: 1)
+                                    .frame(width: 20, height: 20)
+                            }
+                        }
+                        .padding(.horizontal, DesignSpacing.medium)
+                        .padding(.vertical, DesignSpacing.small)
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: DesignRadius.element, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DesignRadius.element, style: .continuous)
+                                .stroke(
+                                    isSelected ? DesignColors.roseGold.opacity(0.5) : Color.clear,
+                                    lineWidth: 1
+                                )
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, DesignSpacing.standard)
+            .padding(.bottom, DesignSpacing.small)
+        }
+        .frame(maxHeight: 280) // Constrain for small screens
         .transition(.opacity.combined(with: .offset(y: 20)))
     }
 }

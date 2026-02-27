@@ -25,8 +25,9 @@ public struct GreetingManager {
     
     /// Returns a complete personalised greeting string.
     /// Example: "Good Morning, Sreehari" or "Welcome back" if no name is stored.
-    public static func personalizedGreeting() -> String {
-        if let username = getUsername() {
+    public static func personalizedGreeting(name: String? = nil) -> String {
+        let username = name ?? getUsername()
+        if let username = username {
             return "\(getGreeting()), \(username)"
         } else {
             return "Welcome back"

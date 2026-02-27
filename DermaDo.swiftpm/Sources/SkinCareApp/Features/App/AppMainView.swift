@@ -25,7 +25,8 @@ public struct AppMainView: View {
                     routineManager: dependencies.routineManager,
                     trackerManager: dependencies.trackerManager,
                     settingsManager: dependencies.settingsManager,
-                    progressManager: dependencies.progressManager
+                    progressManager: dependencies.progressManager,
+                    userManager: dependencies.userManager
                 ))
                 .tag(AppFeature.home)
                 
@@ -58,17 +59,14 @@ public struct AppMainView: View {
             }
         }
         .fullScreenCover(isPresented: $showOnboarding) {
-            OnboardingView { name, skinTone, skinType in
-                // Persist user profile for personalization
-                UserDefaults.standard.set(name, forKey: "userName")
-                UserDefaults.standard.set(skinType.rawValue, forKey: "userSkinType")
-                
-                // Save skin tone color components for avatar persistence
-                #if canImport(UIKit)
-                var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-                UIColor(skinTone).getRed(&r, green: &g, blue: &b, alpha: &a)
-                UserDefaults.standard.set([Double(r), Double(g), Double(b)], forKey: "userSkinToneRGB")
-                #endif
+            OnboardingView { name, skinType, skinGoals in
+                // Persist user profile reactively via UserManager
+                let profile = UserProfile(
+                    name: name,
+                    skinType: skinType,
+                    skinGoals: Array(skinGoals)
+                )
+                dependencies.userManager.saveProfile(profile)
                 
                 withAnimation(DesignMotion.heroMaterialize) {
                     hasCompletedOnboarding = true

@@ -12,6 +12,7 @@ public final class HomeDashboardViewModel: ObservableObject {
     private let trackerManager: TrackerManagerProtocol
     private let settingsManager: SettingsManagerProtocol
     private let progressManager: ProgressManagerProtocol
+    private let userManager: UserManagerProtocol
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -70,12 +71,14 @@ public final class HomeDashboardViewModel: ObservableObject {
         routineManager: RoutineManagerProtocol,
         trackerManager: TrackerManagerProtocol,
         settingsManager: SettingsManagerProtocol,
-        progressManager: ProgressManagerProtocol
+        progressManager: ProgressManagerProtocol,
+        userManager: UserManagerProtocol
     ) {
         self.routineManager = routineManager
         self.trackerManager = trackerManager
         self.settingsManager = settingsManager
         self.progressManager = progressManager
+        self.userManager = userManager
         
         setupBindings()
         refresh()
@@ -84,6 +87,13 @@ public final class HomeDashboardViewModel: ObservableObject {
     // MARK: - Reactive Bindings
     
     private func setupBindings() {
+        userManager.userProfilePublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] profile in
+                self?.computeGreeting(name: profile?.name)
+            }
+            .store(in: &cancellables)
+        
         routineManager.routinesPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.computeTodayRoutine() }
@@ -137,8 +147,8 @@ public final class HomeDashboardViewModel: ObservableObject {
     
     // MARK: - Greeting
     
-    private func computeGreeting() {
-        greetingText = GreetingManager.personalizedGreeting()
+    private func computeGreeting(name: String? = nil) {
+        greetingText = GreetingManager.personalizedGreeting(name: name)
     }
     
     // MARK: - Today's Routine
