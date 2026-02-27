@@ -8,9 +8,6 @@ public struct AppMainView: View {
     @EnvironmentObject private var voiceManager: VoiceManager
     @EnvironmentObject private var dependencies: AppDependencies
     
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
-    @State private var showOnboarding: Bool = false
-    
     public init() {}
     
     public var body: some View {
@@ -40,38 +37,8 @@ public struct AppMainView: View {
                     .tag(AppFeature.settings)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-            .ignoresSafeArea()
-            
-            // Custom Luxury Navigation Bar sits visually over the void
-            VStack {
-                Spacer()
+            .safeAreaInset(edge: .bottom) {
                 AppNavigationBar()
-            }
-        }
-        .onAppear {
-            if !hasCompletedOnboarding {
-                showOnboarding = true
-            }
-        }
-        .onChange(of: hasCompletedOnboarding) { newValue in
-            if !newValue {
-                showOnboarding = true
-            }
-        }
-        .fullScreenCover(isPresented: $showOnboarding) {
-            OnboardingView { name, skinType, skinGoals in
-                // Persist user profile reactively via UserManager
-                let profile = UserProfile(
-                    name: name,
-                    skinType: skinType,
-                    skinGoals: Array(skinGoals)
-                )
-                dependencies.userManager.saveProfile(profile)
-                
-                withAnimation(DesignMotion.heroMaterialize) {
-                    hasCompletedOnboarding = true
-                    showOnboarding = false
-                }
             }
         }
     }

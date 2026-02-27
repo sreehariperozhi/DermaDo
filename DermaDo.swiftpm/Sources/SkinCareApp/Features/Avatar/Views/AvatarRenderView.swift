@@ -26,7 +26,6 @@ public struct AvatarRenderView: View {
             Image("onboarding_avatar")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 280, height: 400)
                 .overlay(
                     // Progress-driven skin brightness glow
                     Rectangle()
@@ -47,7 +46,6 @@ public struct AvatarRenderView: View {
                 Image(overlayName)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 280, height: 400)
                     .opacity(0.7)
                     .transition(.opacity.animation(.easeInOut(duration: 0.4)))
             }

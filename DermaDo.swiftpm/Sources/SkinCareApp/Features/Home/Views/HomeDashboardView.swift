@@ -44,10 +44,10 @@ public struct HomeDashboardView: View {
                     reminderCard(text: reminderText)
                 }
                 
-                Spacer().frame(height: 100) // Scroll clearance for floating tab bar
+                // Removed scroll clearance for floating tab bar
             }
             .padding(.horizontal, DesignSpacing.large)
-            .padding(.top, DesignSpacing.editorial)
+            .padding(.top, DesignSpacing.standard)
         }
         .background(backgroundGradient)
         .onAppear {

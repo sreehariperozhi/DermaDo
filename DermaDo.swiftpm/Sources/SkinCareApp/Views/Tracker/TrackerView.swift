@@ -42,10 +42,10 @@ struct TrackerViewContent: View {
                     recentEntriesSection
                         .editorialReveal(delay: 0.3)
                     
-                    Spacer().frame(height: 100) // Clearance for floating dock
+                    // Removed floating dock clearance
                 }
                 .padding(.horizontal, DesignSpacing.large)
-                .padding(.top, DesignSpacing.editorial)
+                .padding(.top, DesignSpacing.standard)
             }
         }
         .onAppear {

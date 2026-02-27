@@ -8,7 +8,8 @@ struct SettingsView: View {
         SettingsViewContent(viewModel: SettingsViewModel(
             settingsManager: dependencies.settingsManager,
             backupManager: dependencies.backupManager,
-            notificationManager: dependencies.notificationManager
+            notificationManager: dependencies.notificationManager,
+            userManager: dependencies.userManager
         ))
     }
 }
@@ -36,6 +37,10 @@ struct SettingsViewContent: View {
                     headerSection
                         .editorialReveal(delay: 0.1)
 
+                    // MARK: - Profile Section
+                    SettingsProfileSection(viewModel: viewModel)
+                        .editorialReveal(delay: 0.15)
+
                     // MARK: - Notifications Section
                     notificationSection
                         .editorialReveal(delay: 0.2)
@@ -52,10 +57,10 @@ struct SettingsViewContent: View {
                     footerSection
                         .editorialReveal(delay: 0.5)
                     
-                    Spacer().frame(height: 100)
+                    // Removed 100pt spacer
                 }
                 .padding(.horizontal, DesignSpacing.large)
-                .padding(.top, DesignSpacing.editorial)
+                .padding(.top, DesignSpacing.standard)
             }
         }
         .overlay(alignment: .top) {
@@ -82,7 +87,6 @@ struct SettingsViewContent: View {
                 .font(DesignTypography.displayEditorial)
                 .foregroundColor(DesignColors.luminousPearl)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var notificationSection: some View {

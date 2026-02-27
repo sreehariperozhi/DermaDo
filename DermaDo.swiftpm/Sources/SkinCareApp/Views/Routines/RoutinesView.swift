@@ -61,12 +61,11 @@ struct RoutinesViewContent: View {
                                 .editorialReveal(delay: 0.15 + Double(index) * 0.08)
                             }
                         }
-
-                        // Floating dock clearance
-                        Spacer().frame(height: 100)
+                        
+                        // We rely on TabView Safe Area, so we remove the manual spacer
                     }
                     .padding(.horizontal, DesignSpacing.large)
-                    .padding(.top, DesignSpacing.editorial)
+                    .padding(.top, DesignSpacing.standard)
                 }
             }
             .navigationBarHidden(true)
