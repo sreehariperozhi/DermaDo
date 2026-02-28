@@ -5,6 +5,7 @@ struct SkinCareAppApp: App {
     // Maintain a single instance of dependencies
     @StateObject private var dependencies = AppDependencies()
     @AppStorage("appTheme") private var storedTheme: String = AppTheme.system.rawValue
+    @AppStorage("isOnboardingCompleted") private var isOnboardingCompleted = false
     @StateObject private var appRouter = AppRouter()
     @StateObject private var activeSession = ActiveRoutineSession()
     @StateObject private var voiceManager = VoiceManager()
@@ -19,21 +20,30 @@ struct SkinCareAppApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppMainView()
-                .environmentObject(appRouter)
-                .environmentObject(activeSession)
-                .environmentObject(voiceManager)
-                .environmentObject(dependencies)
-                .preferredColorScheme(colorScheme)
-                .onAppear {
-                    performStartupChecks()
-                    // Sync stored theme from settings
-                    let theme = dependencies.settingsManager.loadSettings().theme
-                    storedTheme = theme.rawValue
+            Group {
+                if isOnboardingCompleted {
+                    AppMainView()
+                } else {
+                    OnboardingView(
+                        userManager: dependencies.userManager,
+                        notificationManager: dependencies.notificationManager
+                    )
                 }
-                .onReceive(dependencies.settingsManager.settingsPublisher) { settings in
-                    storedTheme = settings.theme.rawValue
-                }
+            }
+            .environmentObject(appRouter)
+            .environmentObject(activeSession)
+            .environmentObject(voiceManager)
+            .environmentObject(dependencies)
+            .preferredColorScheme(colorScheme)
+            .animation(DesignMotion.editorialSpring, value: isOnboardingCompleted)
+            .onAppear {
+                performStartupChecks()
+                let theme = dependencies.settingsManager.loadSettings().theme
+                storedTheme = theme.rawValue
+            }
+            .onReceive(dependencies.settingsManager.settingsPublisher) { settings in
+                storedTheme = settings.theme.rawValue
+            }
         }
     }
     
@@ -45,16 +55,15 @@ struct SkinCareAppApp: App {
             print("[SkinCareApp] Migration failed: \(error.localizedDescription)")
         }
         
-        // Notification Request - Manager handles delegate in init
-        // Just request auth if not determind? 
-        // Or let a specific view (Onboarding/Settings) handle this to avoid prompt bomb on launch?
-        // User request implied keeping logic but wrapping it. 
-        // Current logic requests on launch.
-        dependencies.notificationManager.requestAuthorization { granted in
-            if granted {
-                print("[SkinCareApp] Notifications authorized")
-            } else {
-                print("[SkinCareApp] Notifications denied")
+        // Notification auth is now handled by the Onboarding flow or Settings.
+        // Only auto-request if onboarding has already been completed.
+        if isOnboardingCompleted {
+            dependencies.notificationManager.requestAuthorization { granted in
+                if granted {
+                    print("[SkinCareApp] Notifications authorized")
+                } else {
+                    print("[SkinCareApp] Notifications denied")
+                }
             }
         }
     }
