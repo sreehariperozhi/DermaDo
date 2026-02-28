@@ -20,6 +20,10 @@ final class AppDependencies: ObservableObject {
     let progressManager: ProgressManagerProtocol
     let userManager: UserManagerProtocol
     
+    // MARK: - Services
+    
+    let skinAnalyzerService: SkinAnalyzerServiceProtocol
+    
     // MARK: - Initialization
     
     init() {
@@ -66,6 +70,9 @@ final class AppDependencies: ObservableObject {
         
         // 9. Progress Manager (depends on Data)
         self.progressManager = ProgressManager(dataManager: dataManager)
+        
+        // 10. Skin Analyzer Service (standalone)
+        self.skinAnalyzerService = SkinAnalyzerService()
         
         // 9. Backup Manager (depends on everything)
         self.backupManager = BackupManager(

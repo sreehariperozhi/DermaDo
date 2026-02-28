@@ -2,12 +2,16 @@ import SwiftUI
 import Combine
 import PhotosUI
 
+// MARK: - AddEntryViewModel
+/// Drives the Add Entry screen: image capture, skin analysis via service, and entry persistence.
+/// All business logic lives here — the View only displays state and sends actions.
 @MainActor
 class AddEntryViewModel: ObservableObject {
     
     // MARK: - Dependencies
     private let trackerManager: TrackerManagerProtocol
     private let dataManager: DataManagerProtocol
+    private let skinAnalyzerService: SkinAnalyzerServiceProtocol
     
     // MARK: - Published State
     @Published var acneCount: Int = 0
@@ -37,9 +41,10 @@ class AddEntryViewModel: ObservableObject {
     private var previousAnalysisResult: SkinAnalysisEngine.AnalysisResult?
     
     // MARK: - Init
-    init(trackerManager: TrackerManagerProtocol, dataManager: DataManagerProtocol) {
+    init(trackerManager: TrackerManagerProtocol, dataManager: DataManagerProtocol, skinAnalyzerService: SkinAnalyzerServiceProtocol) {
         self.trackerManager = trackerManager
         self.dataManager = dataManager
+        self.skinAnalyzerService = skinAnalyzerService
     }
     
     // MARK: - Image Loading
@@ -65,8 +70,8 @@ class AddEntryViewModel: ObservableObject {
         isAnalyzing = true
         
         Task {
-            // Step 1: Detect all faces for validation
-            let faces = await SkinAnalysisEngine.detectFaces(in: image)
+            // Step 1: Detect faces via service
+            let faces = await skinAnalyzerService.detectFaces(in: image)
             
             await MainActor.run {
                 if faces.isEmpty {
@@ -88,14 +93,14 @@ class AddEntryViewModel: ObservableObject {
                         withAnimation { self.showFaceOverlay = false }
                         
                         Task {
-                            let result = await SkinAnalysisEngine.analyzeImage(
+                            // Step 2: Analyze via service
+                            let result = await self.skinAnalyzerService.analyzeImage(
                                 image,
                                 previousResult: self.previousAnalysisResult
                             )
                             
                             await MainActor.run {
                                 guard let result = result else {
-                                    // Analysis returned nil — processing failed
                                     self.isAnalyzing = false
                                     self.showLowQualityAlert = true
                                     return

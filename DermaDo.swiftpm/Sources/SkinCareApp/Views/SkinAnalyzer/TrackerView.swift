@@ -55,7 +55,7 @@ struct TrackerViewContent: View {
             }
         }
         .sheet(isPresented: $showingAddEntry) {
-            AddEntryView(viewModel: AddEntryViewModel(trackerManager: dependencies.trackerManager, dataManager: dependencies.dataManager), onSaved: {
+            AddEntryView(viewModel: AddEntryViewModel(trackerManager: dependencies.trackerManager, dataManager: dependencies.dataManager, skinAnalyzerService: dependencies.skinAnalyzerService), onSaved: {
                 viewModel.refresh()
             })
         }
