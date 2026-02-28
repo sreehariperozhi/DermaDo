@@ -13,7 +13,6 @@ class SettingsViewModel: ObservableObject {
 
     // MARK: - Loop Prevention
     private var isSyncing = false
-    private var isSyncingProfile = false
 
     // MARK: - Published State
     @Published var selectedTheme: AppTheme {
@@ -50,19 +49,6 @@ class SettingsViewModel: ObservableObject {
     @Published var showImportSuccess: Bool = false
     @Published var showError: Bool = false
     @Published var errorMessage: String = ""
-    
-    // MARK: - User Profile State
-    @Published var userName: String = "" {
-        didSet { updateProfile() }
-    }
-    
-    @Published var selectedSkinType: SkinType = .combination {
-        didSet { updateProfile() }
-    }
-    
-    @Published var selectedSkinGoals: Set<SkinGoal> = [] {
-        didSet { updateProfile() }
-    }
 
     // MARK: - Initialization
     init(
@@ -85,27 +71,11 @@ class SettingsViewModel: ObservableObject {
         self.voiceTone = settings.voiceTone
         self.voiceSpeed = settings.voiceSpeed
 
-        // Load profile state
-        if let profile = userManager.loadProfile() {
-            self.userName = profile.name
-            self.selectedSkinType = profile.skinType
-            self.selectedSkinGoals = Set(profile.skinGoals)
-        }
-
         // Bind to manager updates
         settingsManager.settingsPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newSettings in
                 self?.sync(with: newSettings)
-            }
-            .store(in: &cancellables)
-            
-        // Bind to profile updates in case they change elsewhere
-        userManager.userProfilePublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] profile in
-                guard let profile = profile else { return }
-                self?.syncProfile(with: profile)
             }
             .store(in: &cancellables)
     }
@@ -133,21 +103,6 @@ class SettingsViewModel: ObservableObject {
         }
         if abs(voiceSpeed - settings.voiceSpeed) > 0.01 {
             self.voiceSpeed = settings.voiceSpeed
-        }
-    }
-    
-    private func syncProfile(with profile: UserProfile) {
-        isSyncingProfile = true
-        defer { isSyncingProfile = false }
-        
-        if self.userName != profile.name {
-            self.userName = profile.name
-        }
-        if self.selectedSkinType != profile.skinType {
-            self.selectedSkinType = profile.skinType
-        }
-        if self.selectedSkinGoals != Set(profile.skinGoals) {
-            self.selectedSkinGoals = Set(profile.skinGoals)
         }
     }
 
@@ -181,26 +136,6 @@ class SettingsViewModel: ObservableObject {
         if newSettings == currentSettings { return }
 
         settingsManager.saveSettings(newSettings)
-    }
-    
-    private func updateProfile() {
-        guard !isSyncingProfile else { return }
-        
-        let updatedProfile = UserProfile(
-            name: userName,
-            skinType: selectedSkinType,
-            skinGoals: Array(selectedSkinGoals)
-        )
-        
-        userManager.saveProfile(updatedProfile)
-    }
-    
-    func toggleSkinGoal(_ goal: SkinGoal) {
-        if selectedSkinGoals.contains(goal) {
-            selectedSkinGoals.remove(goal)
-        } else {
-            selectedSkinGoals.insert(goal)
-        }
     }
 
     private func requestNotificationAuth() {

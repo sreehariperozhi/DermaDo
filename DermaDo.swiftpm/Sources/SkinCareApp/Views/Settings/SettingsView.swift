@@ -17,12 +17,13 @@ struct SettingsView: View {
 
 struct SettingsViewContent: View {
     @StateObject var viewModel: SettingsViewModel
+    @EnvironmentObject var userSession: UserSessionViewModel
     @AppStorage("hasCompletedProfileSetup") private var hasCompletedProfileSetup: Bool = false
     
     // Banner condition: if name is empty or no skin goals are selected, and they haven't permanently hidden it.
     private var showProfileBanner: Bool {
         if hasCompletedProfileSetup { return false }
-        let isComplete = !viewModel.userName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !viewModel.selectedSkinGoals.isEmpty
+        let isComplete = !userSession.userName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !userSession.skinGoals.isEmpty
         if isComplete {
             // Auto complete if they meet conditions
             DispatchQueue.main.async {
@@ -114,7 +115,7 @@ struct SettingsViewContent: View {
 
     // MARK: - Banner
     private var profileSetupBanner: some View {
-        NavigationLink(destination: ProfileDetailView(viewModel: viewModel)) {
+        NavigationLink(destination: ProfileDetailView()) {
             HStack(spacing: DesignSpacing.medium) {
                 Image(systemName: "exclamationmark.circle.fill")
                     .font(.title)
@@ -163,7 +164,7 @@ struct SettingsViewContent: View {
     private var coreNavigationSection: some View {
         VStack(spacing: 0) {
             settingsNavRow(title: "Profile", icon: "person.crop.circle", isTop: true, isBottom: false) {
-                ProfileDetailView(viewModel: viewModel)
+                ProfileDetailView()
             }
             
             Divider().background(DesignColors.voidAsh.opacity(0.3)).padding(.horizontal, DesignSpacing.medium)

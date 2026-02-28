@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ProfileDetailView: View {
-    @ObservedObject var viewModel: SettingsViewModel
+    @EnvironmentObject var userSession: UserSessionViewModel
     @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
@@ -42,7 +42,7 @@ struct ProfileDetailView: View {
                         sectionLabel("Personal Info")
                         
                         VStack(spacing: 0) {
-                            TextField("Your Name", text: $viewModel.userName)
+                            TextField("Your Name", text: $userSession.userName)
                                 .font(DesignTypography.bodyUI)
                                 .foregroundColor(DesignColors.luminousPearl)
                                 .padding(DesignSpacing.medium)
@@ -61,7 +61,7 @@ struct ProfileDetailView: View {
                                 
                                 Spacer()
                                 
-                                Picker("Skin Type", selection: $viewModel.selectedSkinType) {
+                                Picker("Skin Type", selection: $userSession.skinType) {
                                     ForEach(SkinType.allCases, id: \.self) { type in
                                         Text(type.rawValue.capitalized).tag(type)
                                     }
@@ -79,7 +79,7 @@ struct ProfileDetailView: View {
                         
                         VStack(spacing: 0) {
                             ForEach(SkinGoal.allCases, id: \.self) { goal in
-                                Button(action: { viewModel.toggleSkinGoal(goal) }) {
+                                Button(action: { userSession.toggleSkinGoal(goal) }) {
                                     HStack {
                                         Text(goal.rawValue)
                                             .font(DesignTypography.bodyUI)
@@ -87,7 +87,7 @@ struct ProfileDetailView: View {
                                         
                                         Spacer()
                                         
-                                        if viewModel.selectedSkinGoals.contains(goal) {
+                                        if userSession.skinGoals.contains(goal) {
                                             Image(systemName: "checkmark")
                                                 .foregroundColor(DesignColors.roseGold)
                                                 .font(.system(size: 16, weight: .bold))

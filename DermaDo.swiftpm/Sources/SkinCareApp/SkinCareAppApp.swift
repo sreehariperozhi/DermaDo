@@ -9,6 +9,7 @@ struct SkinCareAppApp: App {
     @StateObject private var appRouter = AppRouter()
     @StateObject private var activeSession = ActiveRoutineSession()
     @StateObject private var voiceManager = VoiceManager()
+    @StateObject private var userSession = UserSessionViewModel(userManager: AppDependencies().userManager)
 
     private var colorScheme: ColorScheme? {
         switch AppTheme(rawValue: storedTheme) ?? .system {
@@ -34,6 +35,7 @@ struct SkinCareAppApp: App {
             .environmentObject(activeSession)
             .environmentObject(voiceManager)
             .environmentObject(dependencies)
+            .environmentObject(userSession)
             .preferredColorScheme(colorScheme)
             .animation(DesignMotion.editorialSpring, value: isOnboardingCompleted)
             .onAppear {
