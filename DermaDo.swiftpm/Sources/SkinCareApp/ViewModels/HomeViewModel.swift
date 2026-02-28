@@ -98,10 +98,11 @@ final class HomeViewModel: ObservableObject {
         let currentTimeOfDay: TimeOfDay = hour < 14 ? .morning : .evening
         let currentDay = currentDayOfWeek()
 
-        // 1. Filter for routines enabled & scheduled for TODAY
+        // 1. Filter for routines enabled & scheduled for TODAY & have steps for today
         let routinesForToday = allRoutines
             .filter { $0.isEnabled }
             .filter { $0.repeatDays.contains(currentDay) }
+            .filter { !$0.stepsForToday().isEmpty }
 
         // 2. Sort to prioritize:
         //    a. Matches current time of day (or is .both)
@@ -120,7 +121,7 @@ final class HomeViewModel: ObservableObject {
         let matching = sortedRoutines.first
 
         todayRoutine = matching
-        todaySteps = matching?.steps.sorted { $0.order < $1.order } ?? []
+        todaySteps = matching?.stepsForToday().sorted { $0.order < $1.order } ?? []
         hasRoutine = matching != nil
     }
 

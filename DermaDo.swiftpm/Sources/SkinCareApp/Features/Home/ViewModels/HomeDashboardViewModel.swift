@@ -160,9 +160,10 @@ public final class HomeDashboardViewModel: ObservableObject {
         let currentTimeOfDay: TimeOfDay = hour < 14 ? .morning : .evening
         let currentDay = currentDayOfWeek()
         
-        // Filter: scheduled for today (include disabled)
+        // Filter: scheduled for today (include disabled) and has at least 1 step passing the filter
         let routinesForToday = allRoutines
             .filter { $0.repeatDays.contains(currentDay) }
+            .filter { !$0.stepsForToday().isEmpty }
         
         // Sort: prioritize matching time-of-day (or .both), then by creation date
         let sorted = routinesForToday.sorted { r1, r2 in
@@ -177,7 +178,7 @@ public final class HomeDashboardViewModel: ObservableObject {
         if let best = sorted.first {
             todayRoutine = best
             nextRoutineName = best.name.isEmpty ? "Untitled Routine" : best.name
-            nextRoutineStepCount = best.steps.count
+            nextRoutineStepCount = best.stepsForToday().count
             hasRoutine = true
             
             // Time description

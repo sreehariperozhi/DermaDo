@@ -13,6 +13,9 @@ public struct AvatarState: Equatable {
     
     // MARK: - Ephemeral State (The "Reaction")
     
+    /// The main background image representing the step (or the avatar resting state)
+    public var baseImage: String
+    
     /// The expression asset (e.g., "eyes_open", "eyes_closed", "eyes_winking")
     public var expression: String
     
@@ -31,6 +34,7 @@ public struct AvatarState: Equatable {
     public init(
         hairStyle: String = "avatar_hair_default",
         outfit: String = "avatar_outfit_robe",
+        baseImage: String = "onboarding_avatar",
         expression: String = "avatar_eyes_open",
         activeOverlay: String? = nil,
         glowIntensity: Double = 0.0,
@@ -39,6 +43,7 @@ public struct AvatarState: Equatable {
     ) {
         self.hairStyle = hairStyle
         self.outfit = outfit
+        self.baseImage = baseImage
         self.expression = expression
         self.activeOverlay = activeOverlay
         self.glowIntensity = glowIntensity

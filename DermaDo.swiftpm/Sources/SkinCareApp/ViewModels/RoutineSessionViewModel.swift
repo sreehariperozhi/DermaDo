@@ -93,6 +93,9 @@ class RoutineSessionViewModel: ObservableObject {
             // External state (Avatar)
             self.activeSession?.currentStep = stepTypeMapping
             self.activeSession?.progressPercentage = prog
+            
+            // Auto-start the timer for the step
+            self.startTimer()
         }
     }
     
@@ -214,6 +217,10 @@ class RoutineSessionViewModel: ObservableObject {
             }
             if timeRemaining <= 0 && !Task.isCancelled {
                 stopTimer()
+                // Automatically transition to the next step when timer finishes
+                DispatchQueue.main.async { [weak self] in
+                    self?.nextStep()
+                }
             }
         }
     }

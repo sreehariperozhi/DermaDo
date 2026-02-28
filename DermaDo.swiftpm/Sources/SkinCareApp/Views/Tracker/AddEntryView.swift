@@ -201,6 +201,11 @@ struct AddEntryView: View {
             } message: {
                 Text("Multiple faces detected. Please capture only your face for accurate analysis.")
             }
+            .alert("Image Quality Too Low", isPresented: $viewModel.showLowQualityAlert) {
+                Button("Retake", role: .cancel) { }
+            } message: {
+                Text("The image quality is too low for accurate analysis. Please retake with better lighting and hold your device steady.")
+            }
         }
     }
 

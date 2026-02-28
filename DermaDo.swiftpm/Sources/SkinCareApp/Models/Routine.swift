@@ -42,6 +42,26 @@ struct Routine: Codable, Identifiable, Equatable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
+
+    // MARK: - Helpers
+
+    /// Returns the subset of steps that are scheduled for today, preserving their relative order.
+    func stepsForToday() -> [RoutineStep] {
+        let weekday = Calendar.current.component(.weekday, from: Date())
+        let today: DayOfWeek
+        switch weekday {
+        case 1: today = .sunday
+        case 2: today = .monday
+        case 3: today = .tuesday
+        case 4: today = .wednesday
+        case 5: today = .thursday
+        case 6: today = .friday
+        case 7: today = .saturday
+        default: today = .monday
+        }
+        
+        return steps.filter { $0.repeatDays.contains(today) }
+    }
 }
 
 // MARK: - RoutineStep

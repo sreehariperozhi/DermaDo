@@ -147,7 +147,13 @@ struct RoutineDetailView: View {
                     if case .edit(_) = viewModel.mode {
                         Section {
                             Button(action: {
-                                showingRoutineSession = true
+                                let todaySteps = viewModel.stepsForToday()
+                                if todaySteps.isEmpty {
+                                    viewModel.validationMessage = "No steps scheduled for today."
+                                    viewModel.showValidationAlert = true
+                                } else {
+                                    showingRoutineSession = true
+                                }
                             }) {
                                 HStack {
                                     Spacer()
@@ -220,6 +226,13 @@ struct RoutineDetailView: View {
                         }
                     )
                 }
+                .alert(isPresented: $viewModel.showValidationAlert) {
+                    Alert(
+                        title: Text("Notice"),
+                        message: Text(viewModel.validationMessage),
+                        dismissButton: .default(Text("OK"))
+                    )
+                }
                 .sheet(item: $stepToEdit) { step in
                     EditRoutineStepView(
                         step: step,
@@ -239,8 +252,20 @@ struct RoutineDetailView: View {
                 }
                 .fullScreenCover(isPresented: $showingRoutineSession) {
                     if case .edit(let routine) = viewModel.mode {
+                        let filteredRoutine = Routine(
+                            id: routine.id,
+                            name: routine.name,
+                            timeOfDay: routine.timeOfDay,
+                            steps: viewModel.stepsForToday(),
+                            repeatDays: routine.repeatDays,
+                            isEnabled: routine.isEnabled,
+                            notifyReminder: routine.notifyReminder,
+                            reminderTime: routine.reminderTime,
+                            createdAt: routine.createdAt,
+                            updatedAt: routine.updatedAt
+                        )
                         RoutineSessionView2(
-                            routine: routine,
+                            routine: filteredRoutine,
                             productManager: dependencies.productManager,
                             progressManager: dependencies.progressManager,
                             trackerManager: dependencies.trackerManager,

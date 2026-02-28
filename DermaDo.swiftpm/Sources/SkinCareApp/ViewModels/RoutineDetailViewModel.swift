@@ -146,6 +146,17 @@ class RoutineDetailViewModel: ObservableObject {
             && !repeatDays.isEmpty
     }
 
+    // MARK: - Filter Steps for Today
+    
+    func stepsForToday() -> [RoutineStep] {
+        // Create a temporary Routine instance strictly to compute the filtered steps using the unified model logic
+        let tempRoutine = Routine(
+            name: self.name,
+            steps: self.steps
+        )
+        return tempRoutine.stepsForToday().sorted { $0.order < $1.order }
+    }
+
     // MARK: - Save
 
     func save() {

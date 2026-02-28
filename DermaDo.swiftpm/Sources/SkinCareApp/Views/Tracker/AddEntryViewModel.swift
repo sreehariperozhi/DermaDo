@@ -27,8 +27,13 @@ class AddEntryViewModel: ObservableObject {
     @Published var isAnalyzing: Bool = false
     @Published var showNoFaceAlert: Bool = false
     @Published var showMultipleFacesAlert: Bool = false
+    @Published var showLowQualityAlert: Bool = false
+    @Published var analysisConfidence: Double = 0.0
     @Published var faceRect: CGRect? = nil
     @Published var showFaceOverlay: Bool = false
+    
+    /// Stores the last analysis result for inter-scan stability smoothing
+    private var previousAnalysisResult: SkinAnalysisEngine.AnalysisResult?
     
     // MARK: - Init
     init(trackerManager: TrackerManagerProtocol, dataManager: DataManagerProtocol) {
@@ -57,7 +62,7 @@ class AddEntryViewModel: ObservableObject {
         isAnalyzing = true
         
         Task {
-            // Step 1: Detect all faces (background thread via async)
+            // Step 1: Detect all faces
             let faces = await SkinAnalysisEngine.detectFaces(in: image)
             
             await MainActor.run {
@@ -80,18 +85,33 @@ class AddEntryViewModel: ObservableObject {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                         withAnimation { self.showFaceOverlay = false }
                         
-                        // Proceed to Step 2: Skin Analysis
+                        // Proceed to Step 2: Skin Analysis with stability smoothing
                         Task {
-                            let result = await SkinAnalysisEngine.analyzeImage(image)
+                            let result = await SkinAnalysisEngine.analyzeImage(
+                                image,
+                                previousResult: self.previousAnalysisResult
+                            )
                             
                             await MainActor.run {
+                                // Check quality
+                                if result.isLowQuality {
+                                    self.isAnalyzing = false
+                                    self.capturedImage = nil
+                                    self.showLowQualityAlert = true
+                                    return
+                                }
+                                
                                 withAnimation(.spring()) {
                                     self.oilLevel = result.oiliness
                                     self.rednessLevel = result.redness
                                     self.textureLevel = result.texture
                                     self.drynessLevel = result.dryness
+                                    self.analysisConfidence = result.confidence
                                     self.isAnalyzing = false
                                 }
+                                
+                                // Store for next scan's stability smoothing
+                                self.previousAnalysisResult = result
                             }
                         }
                     }

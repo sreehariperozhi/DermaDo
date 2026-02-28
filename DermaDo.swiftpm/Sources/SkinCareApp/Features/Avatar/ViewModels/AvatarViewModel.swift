@@ -73,26 +73,42 @@ public final class AvatarViewModel: ObservableObject {
         withAnimation(DesignMotion.editorialSpring) {
             switch step {
             case .cleanser:
+                state.baseImage = "cleanse"
                 state.expression = "avatar_eyes_closed"
                 state.activeOverlay = "avatar_overlay_cleanser"
                 voiceManager?.speak("Let's gently cleanse your skin. Use soft, circular motions.")
+            case .exfoliate:
+                state.baseImage = "exfoliate"
+                state.expression = "avatar_eyes_winking"
+                state.activeOverlay = nil
+                voiceManager?.speak("Exfoliate your skin to remove dead cells and reveal a fresh glow.")
+            case .toner:
+                state.baseImage = "toner"
+                state.expression = "avatar_eyes_open"
+                state.activeOverlay = nil
+                voiceManager?.speak("Apply the toner to balance and prep your skin.")
             case .mask:
+                state.baseImage = "mask"
                 state.expression = "avatar_eyes_closed"
                 state.activeOverlay = "avatar_overlay_mask"
                 voiceManager?.speak("Gently apply your mask. Let it rest and nourish your skin.")
             case .serum:
+                state.baseImage = "serum"
                 state.expression = "avatar_eyes_winking"
                 state.activeOverlay = nil
                 voiceManager?.speak("Gently press the serum into your skin to help it absorb.")
             case .moisturizing:
+                state.baseImage = "moisturizer"
                 state.expression = "avatar_eyes_open"
                 state.activeOverlay = nil
                 voiceManager?.speak("A moment to hydrate. Gently massage the moisturizer into your skin.")
             case .sunscreen:
+                state.baseImage = "sunscreen"
                 state.expression = "avatar_eyes_open"
                 state.activeOverlay = nil
                 voiceManager?.speak("The final layer of protection. Your skin is glowing beautifully today.")
             case .none:
+                state.baseImage = "onboarding_avatar"
                 state.expression = "avatar_eyes_open"
                 state.activeOverlay = nil
                 voiceManager?.stop()
@@ -103,6 +119,7 @@ public final class AvatarViewModel: ObservableObject {
     /// Instantly returns the avatar to a resting state.
     public func resetToIdle() {
         withAnimation(DesignMotion.editorialSpring) {
+            state.baseImage = "onboarding_avatar"
             state.expression = "avatar_eyes_open"
             state.activeOverlay = nil
             state.isVoiceListening = false

@@ -5,6 +5,8 @@ import Combine
 public enum RoutineStepType: Equatable {
     case none
     case cleanser
+    case exfoliate
+    case toner
     case serum
     case mask
     case moisturizing
@@ -13,8 +15,10 @@ public enum RoutineStepType: Equatable {
     static func mapStepType(_ type: StepType) -> RoutineStepType {
         switch type {
         case .cleanse: return .cleanser
+        case .exfoliate: return .exfoliate
+        case .tone: return .toner
+        case .treat, .apply: return .serum
         case .mask: return .mask
-        case .treat: return .serum
         case .moisturize: return .moisturizing
         case .protect: return .sunscreen
         default: return .none

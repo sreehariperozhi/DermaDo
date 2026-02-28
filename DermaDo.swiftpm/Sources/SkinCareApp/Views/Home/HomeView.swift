@@ -168,11 +168,26 @@ struct HomeViewContent: View {
             }
             .fullScreenCover(isPresented: $showingRoutineSession) {
                 if let routine = viewModel.todayRoutine {
-                    RoutineSessionView(
-                        routine: routine,
+                    let filteredRoutine = Routine(
+                        id: routine.id,
+                        name: routine.name,
+                        timeOfDay: routine.timeOfDay,
+                        steps: routine.stepsForToday(),
+                        repeatDays: routine.repeatDays,
+                        isEnabled: routine.isEnabled,
+                        notifyReminder: routine.notifyReminder,
+                        reminderTime: routine.reminderTime,
+                        createdAt: routine.createdAt,
+                        updatedAt: routine.updatedAt
+                    )
+                    
+                    RoutineSessionView2(
+                        routine: filteredRoutine,
                         productManager: dependencies.productManager,
                         progressManager: dependencies.progressManager,
-                        trackerManager: dependencies.trackerManager
+                        trackerManager: dependencies.trackerManager,
+                        activeSession: ActiveRoutineSession(),
+                        voiceManager: VoiceManager()
                     )
                 }
             }

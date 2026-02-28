@@ -30,19 +30,19 @@ public struct RoutineSessionView2: View {
             // MARK: - 1. Void & Glow Background
             backgroundLayer
             
-            VStack {
-                // MARK: - 2. Top Bar (Progress & Close)
-                topBar
+            VStack(spacing: 0) {
+                // MARK: - 2. Top Bar (Close & Progress)
+                topSection
                 
                 Spacer()
                 
-                // MARK: - 3. Center Stage (Avatar & Depth Transitions)
-                centerStage
+                // MARK: - 3. Middle Section (Avatar & Info)
+                middleSection
                 
                 Spacer()
                 
-                // MARK: - 4. Bottom Panel (Controls & Details)
-                bottomPanel
+                // MARK: - 4. Bottom Section (Timer & Controls)
+                bottomSection
             }
         }
         // Cleanup when closing
@@ -71,8 +71,9 @@ public struct RoutineSessionView2: View {
                 .animation(DesignMotion.editorialSpring, value: viewModel.isTransitioning)
         }
     }
+    // MARK: - Top Section
     
-    private var topBar: some View {
+    private var topSection: some View {
         HStack {
             // Close Button
             Button(action: { presentationMode.wrappedValue.dismiss() }) {
@@ -88,7 +89,7 @@ public struct RoutineSessionView2: View {
             
             // Step Indicator
             if !viewModel.sessionComplete {
-                Text("STEP \(viewModel.currentStepIndex + 1) / \(viewModel.totalSteps)".uppercased())
+                Text("STEP \(viewModel.currentStepIndex + 1) OF \(viewModel.totalSteps)".uppercased())
                     .font(DesignTypography.captionUI)
                     .captionTracking()
                     .foregroundColor(DesignColors.luminousPearl)
@@ -103,82 +104,90 @@ public struct RoutineSessionView2: View {
         .padding(.top, DesignSpacing.standard)
     }
     
-    private var centerStage: some View {
-        ZStack {
-            if viewModel.sessionComplete {
-                // Completion Supernova
-                completionView
-                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
-            } else {
-                // Cinematic Step Transition Container
-                ZStack {
-                    // ID dictates the transition lifecycle
-                    if !viewModel.isTransitioning {
-                        AvatarRenderView(viewModel: avatarViewModel)
-                            .id(viewModel.currentStepIndex)
-                            .transition(DesignMotion.depthTransition)
+    // MARK: - Middle Section
+    
+    private var middleSection: some View {
+        VStack(spacing: DesignSpacing.medium) {
+            ZStack {
+                if viewModel.sessionComplete {
+                    // Completion Supernova
+                    completionView
+                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                } else {
+                    // Cinematic Step Transition Container
+                    ZStack {
+                        // ID dictates the transition lifecycle
+                        if !viewModel.isTransitioning {
+                            AvatarRenderView(viewModel: avatarViewModel)
+                                .id(viewModel.currentStepIndex)
+                                .transition(DesignMotion.depthTransition)
+                        }
                     }
                 }
             }
+            .frame(height: 350)
+            
+            if !viewModel.sessionComplete {
+                VStack(spacing: DesignSpacing.micro) {
+                    Text(viewModel.currentStep?.stepType.rawValue.capitalized ?? "Step")
+                        .font(DesignTypography.titleUI)
+                        .foregroundColor(DesignColors.luminousPearl)
+                        .multilineTextAlignment(.center)
+                    
+                    Text(viewModel.currentProduct?.name ?? "Follow standard instructions.")
+                        .font(DesignTypography.bodyUI)
+                        .foregroundColor(DesignColors.liquidSilver)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.horizontal, DesignSpacing.large)
+            }
         }
-        .frame(height: 400)
     }
     
-    private var bottomPanel: some View {
-        VStack(spacing: DesignSpacing.standard) {
+    // MARK: - Bottom Section
+    
+    private var bottomSection: some View {
+        VStack(spacing: DesignSpacing.medium) {
             if !viewModel.sessionComplete {
                 
-                // Step Info & Timer Card
-                HStack(spacing: DesignSpacing.standard) {
-                    // Context (Product or Step Type)
-                    VStack(alignment: .leading, spacing: DesignSpacing.micro) {
-                        Text(viewModel.currentProduct?.name ?? viewModel.currentStep?.stepType.rawValue.capitalized ?? "Step")
-                            .font(DesignTypography.titleUI)
-                            .foregroundColor(DesignColors.luminousPearl)
-                            .lineLimit(1)
-                        
-                        Text(viewModel.currentStep?.instruction.isEmpty == false ? viewModel.currentStep!.instruction : "Follow standard instructions.")
-                            .font(DesignTypography.bodyUI)
-                            .foregroundColor(DesignColors.liquidSilver)
-                            .lineLimit(2)
-                    }
-                    .layoutPriority(1)
-                    
-                    Spacer(minLength: DesignSpacing.small)
-                    
-                    // Elegant Timer
-                    VStack(alignment: .trailing, spacing: DesignSpacing.micro) {
+                // Time Remaining & Animated Timer Bar
+                VStack(spacing: DesignSpacing.small) {
+                    HStack {
                         Text(timeString(from: viewModel.timeRemaining))
-                            .font(.system(size: 28, weight: .light, design: .rounded))
+                            .font(.system(size: 16, weight: .medium, design: .rounded))
                             .foregroundColor(DesignColors.luminousPearl)
-                            .fixedSize()
                         
-                        Text("REMAINING")
-                            .font(DesignTypography.microUI)
-                            .captionTracking()
-                            .foregroundColor(DesignColors.liquidSilver)
+                        Spacer()
                     }
-                    .fixedSize(horizontal: true, vertical: false)
+                    .padding(.horizontal, DesignSpacing.large)
+                    
+                    // Horizontal Progress Bar
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule()
+                                .fill(DesignColors.voidAsh.opacity(0.5))
+                                .frame(height: 6)
+                            
+                            Capsule()
+                                .fill(LinearGradient(
+                                    gradient: Gradient(colors: [orbColor, orbColor.opacity(0.7)]),
+                                    startPoint: .leading, endPoint: .trailing
+                                ))
+                                .frame(width: max(0, geo.size.width * timeProgress), height: 6)
+                                .animation(.linear(duration: 1.0), value: timeProgress)
+                        }
+                    }
+                    .frame(height: 6)
+                    .padding(.horizontal, DesignSpacing.large)
                 }
-                .padding(DesignSpacing.medium)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: DesignRadius.container, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: DesignRadius.container, style: .continuous)
-                        .stroke(DesignShadows.innerGlow, lineWidth: 1)
-                )
-                .padding(.horizontal, DesignSpacing.medium)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
                 
-                // Controls Pill
+                // Media Controls
                 HStack(spacing: DesignSpacing.large) {
-                    // Back
                     MicroButton(icon: "backward.fill",
                                 color: viewModel.currentStepIndex > 0 ? DesignColors.liquidSilver : DesignColors.voidAsh,
                                 action: { viewModel.previousStep() })
                         .disabled(viewModel.currentStepIndex == 0)
                     
-                    // Play/Pause
                     Button(action: { viewModel.toggleTimer() }) {
                         ZStack {
                             Circle()
@@ -193,19 +202,14 @@ public struct RoutineSessionView2: View {
                     }
                     .buttonStyle(TactilePressStyle())
                     
-                    // Next / Skip
                     MicroButton(icon: "forward.fill",
                                 color: DesignColors.luminousPearl,
                                 action: { viewModel.nextStep() })
                 }
-                .padding(.vertical, DesignSpacing.standard)
-                .padding(.bottom, DesignSpacing.medium)
+                .padding(.top, DesignSpacing.small)
+                .padding(.bottom, DesignSpacing.large)
                 
             } else {
-                // Celebration + Done
-                completionView
-                    .transition(.scale(scale: 0.8).combined(with: .opacity))
-                    
                 Button(action: { presentationMode.wrappedValue.dismiss() }) {
                     Text("Finish Routine")
                 }
@@ -267,6 +271,15 @@ public struct RoutineSessionView2: View {
         }
     }
     
+    private var timeProgress: CGFloat {
+        guard let step = viewModel.currentStep,
+              let duration = step.durationSeconds,
+              duration > 0 else { return 0 }
+        
+        let progress = CGFloat(viewModel.timeRemaining) / CGFloat(duration)
+        return min(max(progress, 0), 1)
+    }
+    
     private func timeString(from interval: TimeInterval) -> String {
         let minutes = Int(interval) / 60
         let seconds = Int(interval) % 60
@@ -304,3 +317,4 @@ struct TactilePressStyle: ButtonStyle {
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
+

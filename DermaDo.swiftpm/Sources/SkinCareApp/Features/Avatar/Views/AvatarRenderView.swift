@@ -23,7 +23,7 @@ public struct AvatarRenderView: View {
                 .animation(state.isVoiceListening ? Animation.easeInOut(duration: 1).repeatForever(autoreverses: true) : DesignMotion.editorialSpring, value: state.isVoiceListening)
             
             // LAYER 2: The Avatar Image
-            Image("onboarding_avatar")
+            Image(state.baseImage)
                 .resizable()
                 .scaledToFit()
                 .overlay(
