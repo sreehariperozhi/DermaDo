@@ -1,3 +1,4 @@
+
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -16,56 +17,64 @@ struct SettingsView: View {
 
 struct SettingsViewContent: View {
     @StateObject var viewModel: SettingsViewModel
-    @Environment(\.presentationMode) var presentationMode
+    @AppStorage("hasCompletedProfileSetup") private var hasCompletedProfileSetup: Bool = false
+    
+    // Banner condition: if name is empty or no skin goals are selected, and they haven't permanently hidden it.
+    private var showProfileBanner: Bool {
+        if hasCompletedProfileSetup { return false }
+        let isComplete = !viewModel.userName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !viewModel.selectedSkinGoals.isEmpty
+        if isComplete {
+            // Auto complete if they meet conditions
+            DispatchQueue.main.async {
+                hasCompletedProfileSetup = true
+            }
+            return false
+        }
+        return true
+    }
 
     var body: some View {
-        ZStack {
-            // MARK: - Background
-            DesignColors.voidObsidian.ignoresSafeArea()
-            
-            // Ambient glow
-            Circle()
-                .fill(DesignColors.ceruleanHydration.opacity(0.1))
-                .frame(width: 400, height: 400)
-                .blur(radius: 100)
-                .offset(x: -150, y: -250)
-
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: DesignSpacing.heroic) {
-                    
-                    // MARK: - Header
-                    headerSection
-                        .editorialReveal(delay: 0.1)
-
-                    // MARK: - Profile Section
-                    SettingsProfileSection(viewModel: viewModel)
-                        .editorialReveal(delay: 0.15)
-
-                    // MARK: - Notifications Section
-                    notificationSection
-                        .editorialReveal(delay: 0.2)
-
-                    // MARK: - Voice Assistant Section
-                    voiceSection
-                        .editorialReveal(delay: 0.3)
-
-                    // MARK: - Appearance Section
-                    appearanceSection
-                        .editorialReveal(delay: 0.4)
-
-                    // MARK: - Footer
-                    footerSection
-                        .editorialReveal(delay: 0.5)
-                    
-                    // Removed 100pt spacer
+        NavigationStack {
+            ZStack {
+                // MARK: - Background Layer
+                backgroundLayer
+                
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: DesignSpacing.heroic) {
+                        
+                        // MARK: - Header
+                        headerSection
+                            .editorialReveal(delay: 0.1)
+                        
+                        // MARK: - Banner
+                        if showProfileBanner {
+                            profileSetupBanner
+                                .editorialReveal(delay: 0.15)
+                        }
+                        
+                        // MARK: - Core Navigation
+                        coreNavigationSection
+                            .editorialReveal(delay: 0.2)
+                        
+                        // MARK: - Voice Assistant Section
+                        voiceSection
+                            .editorialReveal(delay: 0.3)
+                        
+                        // MARK: - Appearance Section
+                        appearanceSection
+                            .editorialReveal(delay: 0.4)
+                        
+                        // MARK: - Footer
+                        footerSection
+                            .editorialReveal(delay: 0.5)
+                        
+                    }
+                    .padding(.horizontal, DesignSpacing.large)
+                    .padding(.top, DesignSpacing.standard)
                 }
-                .padding(.horizontal, DesignSpacing.large)
-                .padding(.top, DesignSpacing.standard)
             }
-        }
-        .overlay(alignment: .top) {
-            // Custom Navbar-ish top bar for modal presentation if needed
-            // But we display it as a primary tab usually.
+            // Hide the default iOS Navigation Bar since we provide a custom header
+            .toolbar(.hidden, for: .navigationBar)
         }
         .alert("Error", isPresented: $viewModel.showError) {
             Button("OK", role: .cancel) { }
@@ -74,8 +83,21 @@ struct SettingsViewContent: View {
         }
     }
 
-    // MARK: - Sections
+    // MARK: - Background Layer
+    private var backgroundLayer: some View {
+        ZStack {
+            DesignColors.voidObsidian.ignoresSafeArea()
 
+            // Ambient cerulean orb
+            Circle()
+                .fill(DesignColors.ceruleanHydration.opacity(0.1))
+                .frame(width: 400, height: 400)
+                .blur(radius: 120)
+                .offset(x: -150, y: -250)
+        }
+    }
+    
+    // MARK: - Header Section
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: DesignSpacing.micro) {
             Text("PREFERENCES")
@@ -87,46 +109,100 @@ struct SettingsViewContent: View {
                 .font(DesignTypography.displayEditorial)
                 .foregroundColor(DesignColors.luminousPearl)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var notificationSection: some View {
-        VStack(alignment: .leading, spacing: DesignSpacing.medium) {
-            sectionLabel("Notifications")
-            
-            VStack(spacing: 0) {
-                // Master Toggle
-                Toggle(isOn: $viewModel.notificationsEnabled) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Enable Reminders")
-                            .font(DesignTypography.bodyStrongUI)
-                            .foregroundColor(DesignColors.luminousPearl)
-                        Text("Master control for routine alerts")
-                            .font(DesignTypography.captionUI)
-                            .foregroundColor(DesignColors.liquidSilver)
-                    }
-                }
-                .tint(DesignColors.roseGold)
-                .padding(DesignSpacing.medium)
+    // MARK: - Banner
+    private var profileSetupBanner: some View {
+        NavigationLink(destination: ProfileDetailView(viewModel: viewModel)) {
+            HStack(spacing: DesignSpacing.medium) {
+                Image(systemName: "exclamationmark.circle.fill")
+                    .font(.title)
+                    .foregroundColor(DesignColors.roseGold)
                 
-                if viewModel.notificationsEnabled {
-                    Divider().background(DesignColors.voidAsh.opacity(0.3))
-                        .padding(.horizontal, DesignSpacing.medium)
-
-                    VStack(spacing: DesignSpacing.small) {
-                        DatePicker("Morning Routine", selection: $viewModel.morningReminderTime, displayedComponents: .hourAndMinute)
-                            .font(DesignTypography.bodyUI)
-                            .foregroundColor(DesignColors.luminousPearl)
-                        
-                        DatePicker("Evening Routine", selection: $viewModel.eveningReminderTime, displayedComponents: .hourAndMinute)
-                            .font(DesignTypography.bodyUI)
-                            .foregroundColor(DesignColors.luminousPearl)
-                    }
-                    .padding(DesignSpacing.medium)
-                    .transition(.move(edge: .top).combined(with: .opacity))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Setup Your Profile")
+                        .font(DesignTypography.bodyStrongUI)
+                        .foregroundColor(DesignColors.luminousPearl)
+                    
+                    Text("Complete your profile for personalized routines.")
+                        .font(DesignTypography.captionUI)
+                        .foregroundColor(DesignColors.liquidSilver)
                 }
+                
+                Spacer()
+                
+                Text("Complete")
+                    .font(DesignTypography.captionUI.weight(.bold))
+                    .foregroundColor(DesignColors.voidObsidian)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(DesignColors.roseGold)
+                    .clipShape(Capsule())
             }
-            .glassCard()
+            .padding(DesignSpacing.standard)
+            .background(DesignColors.voidAsh.opacity(0.5))
+            .clipShape(RoundedRectangle(cornerRadius: DesignRadius.container))
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignRadius.container)
+                    .stroke(DesignColors.roseGold.opacity(0.3), lineWidth: 1)
+            )
         }
+        .buttonStyle(.plain)
+    }
+    
+    // MARK: - Sections
+    private func sectionLabel(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(DesignTypography.microUI)
+            .captionTracking()
+            .foregroundColor(DesignColors.liquidSilver)
+            .padding(.leading, 4)
+    }
+
+    private var coreNavigationSection: some View {
+        VStack(spacing: 0) {
+            settingsNavRow(title: "Profile", icon: "person.crop.circle", isTop: true, isBottom: false) {
+                ProfileDetailView(viewModel: viewModel)
+            }
+            
+            Divider().background(DesignColors.voidAsh.opacity(0.3)).padding(.horizontal, DesignSpacing.medium)
+            
+            settingsNavRow(title: "Notifications", icon: "bell.badge", isTop: false, isBottom: false) {
+                NotificationsView(viewModel: viewModel)
+            }
+            
+            Divider().background(DesignColors.voidAsh.opacity(0.3)).padding(.horizontal, DesignSpacing.medium)
+            
+            settingsNavRow(title: "Privacy", icon: "hand.raised.fill", isTop: false, isBottom: true) {
+                PrivacyView()
+            }
+        }
+        .glassCard()
+    }
+    
+    private func settingsNavRow<Destination: View>(title: String, icon: String, isTop: Bool, isBottom: Bool, @ViewBuilder destination: () -> Destination) -> some View {
+        NavigationLink(destination: destination()) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(DesignColors.roseGold)
+                    .font(.title3)
+                    .frame(width: 30)
+                
+                Text(title)
+                    .font(DesignTypography.bodyUI)
+                    .foregroundColor(DesignColors.luminousPearl)
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(DesignColors.liquidSilver.opacity(0.5))
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .padding(DesignSpacing.medium)
+            .contentShape(Rectangle()) // makes entire row tappable
+        }
+        .buttonStyle(.plain)
     }
 
     private var voiceSection: some View {
@@ -200,16 +276,6 @@ struct SettingsViewContent: View {
         .frame(maxWidth: .infinity)
         .padding(.top, DesignSpacing.large)
     }
-
-    // MARK: - UI Helpers
-
-    private func sectionLabel(_ title: String) -> some View {
-        Text(title.uppercased())
-            .font(DesignTypography.microUI)
-            .captionTracking()
-            .foregroundColor(DesignColors.liquidSilver)
-            .padding(.leading, 4)
-    }
 }
 
 // Helper for File Export
@@ -231,3 +297,4 @@ struct JSONFile: FileDocument {
         return try FileWrapper(url: url, options: .immediate)
     }
 }
+
