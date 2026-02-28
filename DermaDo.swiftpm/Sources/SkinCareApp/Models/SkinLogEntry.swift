@@ -14,6 +14,7 @@ struct SkinEntry: Codable, Identifiable, Equatable {
     let drynessLevel: Int      // 0–10 scale
     let rednessLevel: Int      // 0–10 scale
     let textureLevel: Int      // 0–10 scale
+    let poreLevel: Int         // 0–10 scale
     let overallScore: Int?     // 0–10 optional self-assessment
     let mood: Mood
     let photoFileName: String?
@@ -32,6 +33,7 @@ struct SkinEntry: Codable, Identifiable, Equatable {
         drynessLevel: Int = 0,
         rednessLevel: Int = 0,
         textureLevel: Int = 0,
+        poreLevel: Int = 0,
         overallScore: Int? = nil,
         mood: Mood = .neutral,
         photoFileName: String? = nil,
@@ -47,6 +49,7 @@ struct SkinEntry: Codable, Identifiable, Equatable {
         self.drynessLevel = drynessLevel
         self.rednessLevel = rednessLevel
         self.textureLevel = textureLevel
+        self.poreLevel = poreLevel
         self.overallScore = overallScore
         self.mood = mood
         self.photoFileName = photoFileName

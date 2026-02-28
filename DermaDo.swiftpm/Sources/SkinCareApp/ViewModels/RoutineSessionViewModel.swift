@@ -171,6 +171,8 @@ class RoutineSessionViewModel: ObservableObject {
                     oilLevel: existing.oilLevel,
                     drynessLevel: existing.drynessLevel,
                     rednessLevel: existing.rednessLevel,
+                    textureLevel: existing.textureLevel,
+                    poreLevel: existing.poreLevel,
                     overallScore: existing.overallScore,
                     mood: existing.mood,
                     photoFileName: existing.photoFileName,

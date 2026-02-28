@@ -11,10 +11,11 @@ class AddEntryViewModel: ObservableObject {
     
     // MARK: - Published State
     @Published var acneCount: Int = 0
-    @Published var oilLevel: Double = 5
-    @Published var drynessLevel: Double = 5
-    @Published var rednessLevel: Double = 5
-    @Published var textureLevel: Double = 5
+    @Published var oilLevel: Double = 0
+    @Published var drynessLevel: Double = 0
+    @Published var rednessLevel: Double = 0
+    @Published var textureLevel: Double = 0
+    @Published var poreLevel: Double = 0
     @Published var selectedMood: Mood = .neutral
     @Published var notes: String = ""
     @Published var capturedImage: UIImage? {
@@ -32,7 +33,7 @@ class AddEntryViewModel: ObservableObject {
     @Published var faceRect: CGRect? = nil
     @Published var showFaceOverlay: Bool = false
     
-    /// Stores the last analysis result for inter-scan stability smoothing
+    /// Stores the last analysis result for inter-scan EMA smoothing
     private var previousAnalysisResult: SkinAnalysisEngine.AnalysisResult?
     
     // MARK: - Init
@@ -41,7 +42,7 @@ class AddEntryViewModel: ObservableObject {
         self.dataManager = dataManager
     }
     
-    // MARK: - Actions
+    // MARK: - Image Loading
     
     func loadImage(from item: PhotosPickerItem) {
         item.loadTransferable(type: Data.self) { result in
@@ -58,11 +59,13 @@ class AddEntryViewModel: ObservableObject {
         }
     }
     
+    // MARK: - Analysis Pipeline
+    
     private func performAnalysis(_ image: UIImage) {
         isAnalyzing = true
         
         Task {
-            // Step 1: Detect all faces
+            // Step 1: Detect all faces for validation
             let faces = await SkinAnalysisEngine.detectFaces(in: image)
             
             await MainActor.run {
@@ -75,17 +78,15 @@ class AddEntryViewModel: ObservableObject {
                     self.capturedImage = nil
                     self.showMultipleFacesAlert = true
                 } else if let firstFaceRect = faces.first {
-                    // Exactly one face - proceed
+                    // Exactly one face — show overlay then analyze
                     self.faceRect = firstFaceRect
                     
-                    // Briefly show highlight overlay
                     withAnimation { self.showFaceOverlay = true }
                     
-                    // Delay analysis slightly to allow the user to see the highlight
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                    // Brief delay for face highlight overlay visibility
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         withAnimation { self.showFaceOverlay = false }
                         
-                        // Proceed to Step 2: Skin Analysis with stability smoothing
                         Task {
                             let result = await SkinAnalysisEngine.analyzeImage(
                                 image,
@@ -93,7 +94,13 @@ class AddEntryViewModel: ObservableObject {
                             )
                             
                             await MainActor.run {
-                                // Check quality
+                                guard let result = result else {
+                                    // Analysis returned nil — processing failed
+                                    self.isAnalyzing = false
+                                    self.showLowQualityAlert = true
+                                    return
+                                }
+                                
                                 if result.isLowQuality {
                                     self.isAnalyzing = false
                                     self.capturedImage = nil
@@ -101,16 +108,18 @@ class AddEntryViewModel: ObservableObject {
                                     return
                                 }
                                 
-                                withAnimation(.spring()) {
+                                // Smooth slider animation for premium feel
+                                withAnimation(.easeOut(duration: 0.4)) {
                                     self.oilLevel = result.oiliness
                                     self.rednessLevel = result.redness
                                     self.textureLevel = result.texture
                                     self.drynessLevel = result.dryness
+                                    self.poreLevel = result.pores
                                     self.analysisConfidence = result.confidence
                                     self.isAnalyzing = false
                                 }
                                 
-                                // Store for next scan's stability smoothing
+                                // Store for next scan's EMA smoothing
                                 self.previousAnalysisResult = result
                             }
                         }
@@ -120,13 +129,12 @@ class AddEntryViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Actions
+    // MARK: - Save Entry
     
     func save() {
         var photoFileName: String? = nil
         
         if let img = capturedImage {
-            // Save image logic
             if let data = img.jpegData(compressionQuality: 0.8) {
                 let name = "skin_\(UUID().uuidString).jpg"
                 photoFileName = try? dataManager.saveImage(data, withName: name)
@@ -140,6 +148,7 @@ class AddEntryViewModel: ObservableObject {
             drynessLevel: Int(drynessLevel),
             rednessLevel: Int(rednessLevel),
             textureLevel: Int(textureLevel),
+            poreLevel: Int(poreLevel),
             mood: selectedMood,
             photoFileName: photoFileName,
             notes: notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : notes

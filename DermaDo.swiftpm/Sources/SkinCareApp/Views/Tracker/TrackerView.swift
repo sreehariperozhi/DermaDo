@@ -242,6 +242,10 @@ struct TrackerViewContent: View {
                 StatCard(title: "AVG RED", value: String(format: "%.1f", viewModel.averageRedness), unit: "/10", icon: "thermometer.high", color: DesignColors.velvetCrimson)
                 StatCard(title: "AVG ACNE", value: String(format: "%.0f", viewModel.averageAcne), unit: "pts", icon: "face.dashed", color: DesignColors.sageBotanical)
             }
+            HStack(spacing: DesignSpacing.medium) {
+                StatCard(title: "AVG PORES", value: String(format: "%.1f", viewModel.averagePores), unit: "/10", icon: "circle.grid.3x3.fill", color: DesignColors.liquidSilver)
+                StatCard(title: "ENTRIES", value: "\(viewModel.totalEntries)", unit: "total", icon: "list.bullet.rectangle", color: DesignColors.luminousPearl)
+            }
         }
     }
 

@@ -104,6 +104,7 @@ struct AddEntryView: View {
                             levelSlider(title: "Dryness Level", value: $viewModel.drynessLevel, color: DesignColors.roseGold)
                             levelSlider(title: "Redness Level", value: $viewModel.rednessLevel, color: DesignColors.velvetCrimson)
                             levelSlider(title: "Texture Level", value: $viewModel.textureLevel, color: DesignColors.sageBotanical)
+                            levelSlider(title: "Pore Level", value: $viewModel.poreLevel, color: DesignColors.liquidSilver)
                         }
                         .padding(.vertical, DesignSpacing.small)
                     }

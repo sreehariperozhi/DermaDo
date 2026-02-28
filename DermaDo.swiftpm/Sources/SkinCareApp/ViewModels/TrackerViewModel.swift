@@ -30,6 +30,7 @@ class TrackerViewModel: ObservableObject {
     @Published var averageDryness: Double = 0
     @Published var averageRedness: Double = 0
     @Published var averageAcne: Double = 0
+    @Published var averagePores: Double = 0
     @Published var totalEntries: Int = 0
     
     // MARK: - Initialization
@@ -83,7 +84,7 @@ class TrackerViewModel: ObservableObject {
 
     private func computeAverages() {
         guard !periodEntries.isEmpty else {
-            averageOil = 0; averageDryness = 0; averageRedness = 0; averageAcne = 0
+            averageOil = 0; averageDryness = 0; averageRedness = 0; averageAcne = 0; averagePores = 0
             return
         }
         let count = Double(periodEntries.count)
@@ -91,6 +92,7 @@ class TrackerViewModel: ObservableObject {
         averageDryness = periodEntries.reduce(0.0) { $0 + Double($1.drynessLevel) } / count
         averageRedness = periodEntries.reduce(0.0) { $0 + Double($1.rednessLevel) } / count
         averageAcne    = periodEntries.reduce(0.0) { $0 + Double($1.acneCount) } / count
+        averagePores   = periodEntries.reduce(0.0) { $0 + Double($1.poreLevel) } / count
     }
 
     // MARK: - Entry Operations
